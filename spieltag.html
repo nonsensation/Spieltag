@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+@import url('https://fonts.googleapis.com/css2?family=family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Aldrich&family=Audiowide&family=Black+Ops+One&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Gemunu+Libre:wght@800&family=Goldman:wght@400;700&family=Jockey+One&family=Noto+Sans+Display:wght@900&family=Noto+Sans+Mono:wght@900&family=Oxanium:wght@200;300;400;500;600;700;800&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Tomorrow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap'); */
+
+/* @font-face {
+  font-family: 'Quantico';
+  src:  url('Quantico-Bold.ttf') format('truetype');
+} */
+
+.scoreboard {
+	font-family: 'Quantico', sans-serif;
+	font-weight: 900;
+	width: 40em;
+}
+/**************
+* HOME    *
+**************/
+.name_home, #score_home {color: white}
+.name_away, #score_away {color: black}
+.name_home::after {
+  content: 'Saalebiber';
+}
+.home {
+  /* background: linear-gradient(0deg, rgb(0, 152, 34) 10%, rgb(57, 57, 57) 5%); */
+  /* background: linear-gradient(0deg, black 0%, red 20%, red 20%, white 50%); */
+  background: linear-gradient(0deg, red 10%, white 5%);
+  /* background: linear-gradient(0deg, red 10%, white 5%); */
+  background: linear-gradient(0deg, rgb(0, 0, 0) 10%, rgb(30, 113, 58) 5%);
+}
+.logo_home {
+
+}
+/**************
+* AWAY    *
+**************/
+.name_away::after {
+  content: 'Black Lions';
+}
+.away {
+  /* background: linear-gradient(0deg, #002e83 10%, lightgrey 5%); */
+  /* background: linear-gradient(0deg, black 10%, red 10%, red 20%, white 50%); */
+  /* background: linear-gradient(0deg, black 10%, rgb(0, 96, 0) 5%); */
+  background: linear-gradient(0deg, red 10%, white 5%);
+}
+.logo_away {
+
+}
+
+
+
+
+
+
+body {
+	/*background-color: #333;*/
+  font-size: 100%;
+}
+
+.scoreboard {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	margin: 3em;
+	/* border: 3px solid black; */
+	/* box-shadow: 20px 20px 10px grey; */
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  background-color: rgb(0, 0, 0);
+  color:rgb(255, 255, 255);
+  flex-direction: row;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 75%;
+
+  /* border-bottom: 3px solid black; */
+  /* display: none; */
+
+}
+.header > .period {
+  padding: 0.15em 0.5em;
+  padding-top: 0;
+  left: 0;
+  position: absolute;
+}
+.header > .time {
+  align-self: center;
+  color: transparent;
+}
+
+.body {
+}
+.teams {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-size: 175%;
+}
+.home {
+  width: 50%;
+  flex-direction: row;
+  display: flex;align-items: center;
+  justify-content: space-between;
+}
+.away {
+  width: 50%;
+  display: flex;align-items: center;
+  background-color: rgba(230,190,0,0.99);
+  flex-direction: row;
+  justify-content: space-between;
+}
+.teamscore {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%
+}
+.home > .logo {
+
+}
+.away > .logo {
+
+}
+.logo {
+  display: flex;
+  padding:  auto;
+  margin:  auto;
+}
+.logo > img {
+  height: 1.25em;
+}
+.home > .logo {
+  padding-right: 0.2em;
+}
+.away > .logo {
+  padding-left: 0.2em;
+}
+.score,.away,.home {
+  padding: 0 0.2em;
+}
+.name {
+  overflow: hidden;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+  <div class="scoreboard">
+    <div class="header">
+      <div class="period" id="period">1. Drittel</div>
+      <div class="time">00:00</div>
+    </div>
+    <div class="body">
+      <div class="teams">
+        <div class="home">
+          <div class="logo">
+            <img class="logo_home" src="logo_home.png" alt="">
+          </div>
+          <div class="teamscore">
+            <div class="dummy-to-center"></div>
+            <div class="name name_home"></div>
+            <div class="score" id="score_home">0</div>
+          </div>
+
+        </div>
+        <div class="away">
+          <div class="teamscore" style="color: rgb(0, 0, 0)">
+            <div class="score" id="score_away">0</div>
+            <div class="name name_away"></div>
+            <div class="dummy-to-center"></div>
+          </div>
+          <div class="logo">
+            <img class="logo_away" src="logo_guest.png" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+<script type="text/javascript">
+  const API_URL = 'https://saisonmanager.de/api/v2/games/42941.json';
+  const FETCH_INTERVAL = 10000; // 10 seconds
+
+  /**
+   * Fetches the game data from the API and updates only the scores and period.
+   */
+  async function fetchAndUpdateScore() {
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      // --- 1. Update Scores ONLY ---
+      const homeGoals = data.result?.home_goals ?? 0;
+      const guestGoals = data.result?.guest_goals ?? 0;
+      document.getElementById('score_home').innerText = homeGoals;
+      document.getElementById('score_away').innerText = guestGoals;
+
+      document.getElementById('period').innerText = data.current_period_title?.title ?? "1. Drittel";
+
+    } catch (error) {
+      console.error('Error fetching scoreboard data:', error);
+    }
+  }
+
+  // 1. Initial fetch to load data immediately on script execution
+  fetchAndUpdateScore();
+
+  // 2. Set up interval for polling every 10 seconds
+  setInterval(fetchAndUpdateScore, FETCH_INTERVAL);
+</script>
+</html>
