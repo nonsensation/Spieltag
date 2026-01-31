@@ -48,4 +48,43 @@ Dieses Tool ist als statische Webseite konzipiert.
 ## Credits
 
 *   **QR Code Generator**: [qrcodejs](https://github.com/davidshimjs/qrcodejs) (MIT License)
+*   **Remote Sync**: [PeerJS](https://peerjs.com/) (MIT License) - Ermöglicht direkte Browser-zu-Browser Verbindung.
 *   **Schriften**: Google Fonts (Diverse Lizenzen)
+
+## Remote Sync (Beta)
+
+Der Generator bietet eine **Echtzeit-Synchronisierung** für Timer und Strafzeiten über das Internet (WebRTC via PeerJS).
+Dies ermöglicht es, den Timer auf einem Laptop zu steuern, während das Scoreboard (z.B. auf einem Smartphone oder Tablet) an einem anderen Ort steht, auch ohne direkten Netzwerkzugriff (sofern beide Internet haben).
+
+1. Aktiviere "Remote Sync" im Generator.
+2. Scanne den QR-Code mit dem Zweitgerät.
+3. Timer und Strafen werden sofort übertragen. (Punkte-Updates erfolgen weiterhin via API).
+
+## Lokal Ausführen
+
+Da dieses Projekt auf modernen Web-Features (wie ES6 Modulen und CORS) basiert, funktioniert es am besten über einen lokalen Webserver (nicht direkt via Doppelklick auf die Datei).
+
+### Windows (mit Python)
+
+Wenn Python installiert ist (Standard auf vielen Systemen):
+
+1. Öffne die Eingabeaufforderung / Terminal.
+2. Navigiere in den Projektordner:
+   ```cmd
+   cd C:\pfad\zu\Spieltag
+   ```
+3. Starte den Server:
+   ```cmd
+   py -m http.server
+   ```
+   *(oder `python -m http.server` je nach Version)*
+
+4. Öffne im Browser: `http://localhost:8000`
+
+### Node.js (Alternative)
+
+Mit `http-server` Paket:
+
+```bash
+npx http-server .
+```
