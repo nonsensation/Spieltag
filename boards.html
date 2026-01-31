@@ -58,10 +58,52 @@
     const design = getParam('design') || 'default';
     document.body.setAttribute('data-design', design);
 
-    // Load Design: Custom, or Fetch from file
+    // Configuration Object
+    const config = {
+        home: {
+            primary: getParam('hp'),   
+            secondary: getParam('hs'), 
+            text: getParam('ht'),      
+            name: getParam('hn'),      
+        },
+        guest: {
+            primary: getParam('gp'),
+            secondary: getParam('gs'),
+            text: getParam('gt'),
+            name: getParam('gn'),
+        }
+    };
+
+    // --- 2. Helpers ---
+    // Apply Visual Overrides immediately (Colors)
+    const root = document.documentElement;
+    if (config.home.primary) root.style.setProperty('--home-primary', config.home.primary);
+    if (config.home.secondary) root.style.setProperty('--home-secondary', config.home.secondary);
+    if (config.home.text) root.style.setProperty('--home-text', config.home.text);
+    
+    if (config.guest.primary) root.style.setProperty('--guest-primary', config.guest.primary);
+    if (config.guest.secondary) root.style.setProperty('--guest-secondary', config.guest.secondary);
+    if (config.guest.text) root.style.setProperty('--guest-text', config.guest.text);
+
+    // Helper: Safe Text Update
+    const setTextIfChanged = (id, text) => {
+        const el = document.getElementById(id);
+        if (el && el.innerText !== text) el.innerText = text;
+    };
+
+    function fixLogoUrl(url) {
+        if (!url) return '';
+        if (url.startsWith('/')) {
+            return 'https://saisonmanager.de' + url;
+        }
+        return url;
+    }
+
+    // --- 3. Logic ---
     async function loadDesign() {
         const container = document.getElementById('board-container');
         
+        // 1. Load HTML Content
         if (design === 'custom') {
             const customCode = localStorage.getItem('scoreboardCustomCode');
             if (customCode) {
@@ -71,7 +113,6 @@
             }
         } else {
             try {
-                // Fetch the design HTML file
                 const response = await fetch(`designs/${design}.html`);
                 if (!response.ok) throw new Error(`Design ${design} not found`);
                 const html = await response.text();
@@ -82,65 +123,26 @@
             }
         }
 
-        // Execute scripts if any (simple eval)
+        // 2. Execute Scripts (if any)
         const scripts = container.getElementsByTagName("script");
         for(let i=0; i<scripts.length; i++) {
             try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
         }
 
-        // Trigger data update immediately after loading structure
+        // 3. Apply Name Overrides (Now that DOM exists)
+        if (config.home.name) setTextIfChanged('name_home', config.home.name);
+        if (config.guest.name) setTextIfChanged('name_away', config.guest.name);
+
+        // 4. Trigger Data Fetch
         fetchGameData();
     }
-    
-    loadDesign();
-
-    // Configuration Object
-    const config = {
-        home: {
-            primary: getParam('hp'),   // Home Primary Color
-            secondary: getParam('hs'), // Home Secondary Color
-            text: getParam('ht'),      // Home Text Color
-            name: getParam('hn'),      // Home Name Override
-        },
-        guest: {
-            primary: getParam('gp'),
-            secondary: getParam('gs'),
-            text: getParam('gt'),
-            name: getParam('gn'),
-        }
-    };
-
-    // --- 2. Apply Visual Overrides immediately (Colors) ---
-    const root = document.documentElement;
-    if (config.home.primary) root.style.setProperty('--home-primary', config.home.primary);
-    if (config.home.secondary) root.style.setProperty('--home-secondary', config.home.secondary);
-    if (config.home.text) root.style.setProperty('--home-text', config.home.text);
-    
-    if (config.guest.primary) root.style.setProperty('--guest-primary', config.guest.primary);
-    if (config.guest.secondary) root.style.setProperty('--guest-secondary', config.guest.secondary);
-    if (config.guest.text) root.style.setProperty('--guest-text', config.guest.text);
-
-    // Apply Name Overrides immediately if they exist (prevents flickering before API load)
-    const setTextIfChanged = (id, text) => {
-        const el = document.getElementById(id);
-        if (el && el.innerText !== text) el.innerText = text;
-    };
-
-    if (config.home.name) setTextIfChanged('name_home', config.home.name);
-    if (config.guest.name) setTextIfChanged('name_away', config.guest.name);
-
 
     // --- 3. API Fetching Logic ---
     const API_URL = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
-    const FETCH_INTERVAL = 10000;
-
-    function fixLogoUrl(url) {
-        if (!url) return '';
-        if (url.startsWith('/')) {
-            return 'https://saisonmanager.de' + url;
-        }
-        return url;
-    }
+    
+    // Interval from URL (in seconds), default 10s
+    const paramInterval = parseFloat(getParam('interval'));
+    const FETCH_INTERVAL = (paramInterval && paramInterval > 0) ? (paramInterval * 1000) : 10000;
 
     async function fetchGameData() {
         try {
@@ -149,7 +151,7 @@
             const data = await response.json();
             const res = data.result;
 
-            // Update Scores & Period safely
+            // Update Scores & Period
             const hGoals = (res?.home_goals ?? 0).toString();
             const gGoals = (res?.guest_goals ?? 0).toString();
             const period = (data.current_period_title?.title ?? "1. Drittel");
@@ -159,7 +161,6 @@
             setTextIfChanged('period', period);
 
             // Update Names (Only if NOT overridden via URL)
-            // Use local vars first, apply safely
             if (!config.home.name && data.home_team_name) {
                 setTextIfChanged('name_home', data.home_team_name);
             }
@@ -167,15 +168,22 @@
                 setTextIfChanged('name_away', data.guest_team_name);
             }
 
-            // Update Logos without Reloading if same
+            // Update Logos
             const updateLogo = (imgId, rawUrl) => {
-                if (!rawUrl) return;
-                const fullUrl = fixLogoUrl(rawUrl);
                 const img = document.getElementById(imgId);
-                // Check against dataset to avoid "normalized" src mismatches or Blob reload issues
+                // Safety check: image element must exist
+                if (!img) return;
+                
+                if (!rawUrl) {
+                    img.style.display = 'none';
+                    return;
+                }
+                
+                const fullUrl = fixLogoUrl(rawUrl);
+                
                 if (img.dataset.src !== fullUrl) {
                     img.src = fullUrl;
-                    img.dataset.src = fullUrl; // store the source of truth
+                    img.dataset.src = fullUrl; 
                     img.style.display = 'block';
                 }
             };
@@ -188,8 +196,49 @@
         }
     }
 
-    // Initial load and Interval
-    // fetchGameData() is called in loadDesign() after the DOM is ready
+    // --- 4. Timer Logic (BroadcastChannel) ---
+    const timerChannel = new BroadcastChannel('scoreboard_timer');
+    
+    timerChannel.onmessage = (event) => {
+        if (event.data.type === 'timer_update') {
+            updateTimerDisplay(event.data);
+        }
+    };
+
+    function updateTimerDisplay(data) {
+        // Find time element (class "time" is standard in our designs)
+        // We look inside board-container
+        const timeEl = document.querySelector('.time');
+        
+        if (timeEl) {
+            if (data.visible) {
+                timeEl.style.display = 'block'; // Or flex/initial depending on design, but block is safe for div
+                // If the design has specific display preferences, we might need a class toggle instead.
+                // But for now, let's force display if hidden.
+                // The default design has display:none by default.
+                
+                // If it was none, set to block or inherit. 
+                // Better: remove display:none if strictly setting visibility.
+                if (getComputedStyle(timeEl).display === 'none') {
+                    timeEl.style.display = 'block';
+                }
+                
+                timeEl.style.color = 'inherit'; // Reset transparency if any
+                // Default design sets color: transparent.
+                if (timeEl.style.color === 'transparent') {
+                     timeEl.style.color = 'white'; // or inherit
+                }
+                
+                // Update text
+                timeEl.innerText = data.timeString;
+            } else {
+                timeEl.style.display = 'none';
+            }
+        }
+    }
+
+    // Start
+    loadDesign();
     setInterval(fetchGameData, FETCH_INTERVAL);
 
 </script>

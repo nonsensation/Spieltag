@@ -81,7 +81,7 @@
         button.secondary { background: #6c757d; }
         button.secondary:hover { background: #5a6268; }
         
-        iframe { border: none; width: 100%; height: 100%; background: transparent; }
+        iframe { border: none; width: 100%; flex: 1; height: 0; min-height: 0; background: transparent; }
         
         .loader { font-size: 0.8em; color: #666; font-style: italic; display: none; margin-top: 5px;}
         
@@ -110,6 +110,86 @@
             .controls { width: 100%; min-width: 0; }
             .preview { min-height: 400px; }
         }
+        /* Timer Controls Overlay */
+        .timer-panel {
+            background: #1a1a1a;
+            width: 100%;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            border-top: 1px solid #333;
+            color: #eee;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .timer-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-size: 2em;
+            font-weight: bold;
+            background: #000;
+            color: #ff0000; /* Digital clock style */
+            padding: 5px 15px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .timer-btn {
+            padding: 8px 12px;
+            font-size: 0.85em;
+            cursor: pointer;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #333;
+            color: #ddd;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .timer-btn:hover { background: #444; }
+        .timer-btn.primary { background: #007bff; color: white; border: none; }
+        .timer-btn.primary:hover { background: #0056b3; }
+        .timer-btn.danger { background: #dc3545; color: white; border: none; }
+        .timer-btn.danger:hover { background: #bd2130; }
+        .timer-btn.success { background: #28a745; color: white; border: none; }
+        .timer-btn.success:hover { background: #218838; }
+        
+        .timer-btn.active {
+            background: #ddd;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .vis-toggle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7em;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .vis-toggle:hover { opacity: 0.8; }
+        .vis-toggle.active { opacity: 1; color: #4CAF50; }
+        .vis-toggle i { font-size: 1.5em; margin-bottom: 2px; }
+
+        .timer-select {
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 5px;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -119,6 +199,52 @@
     <div class="preview">
         <h2>Live Vorschau</h2>
         <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
+        
+        <!-- Timer Controls - Added as overlay/panel under preview -->
+        <div class="timer-panel">
+            <div class="timer-group">
+                <!-- Visibility Toggle -->
+                <div id="visToggle" class="vis-toggle" onclick="toggleTimerVis()" title="Klicke zum Anzeigen auf dem Scoreboard">
+                    <span style="font-size:1.5em;">👁️</span>
+                    <span>Anzeigen</span>
+                </div>
+                
+                <!-- Time Display -->
+                <div class="timer-display" id="timerValue">20:00</div>
+            </div>
+
+            <div class="timer-group" style="flex-direction: column; gap: 5px;">
+                <div style="display:flex; gap: 5px;">
+                    <button class="timer-btn success" onclick="startTimer()">START</button>
+                    <button class="timer-btn danger" onclick="stopTimer()">STOP</button>
+                    <button class="timer-btn" onclick="resetTimer()">RESET</button>
+                </div>
+                <div style="display:flex; gap: 5px;">
+                     <button class="timer-btn" onclick="adjustTime(10)" title="+10s">+10s</button>
+                     <button class="timer-btn" onclick="adjustTime(-10)" title="-10s">-10s</button>
+                     <button class="timer-btn" onclick="adjustTime(60)" title="+1m">+1m</button>
+                     <button class="timer-btn" onclick="adjustTime(-60)" title="-1m">-1m</button>
+                </div>
+            </div>
+
+            <div class="timer-group" style="flex-direction: column; align-items: flex-start; font-size: 0.9em; gap: 5px;">
+                <select id="timerPreset" class="timer-select" onchange="applyPreset()" style="width: 100%;">
+                    <option value="20">20 Min (Spiel)</option>
+                    <option value="15">15 Min (Spiel)</option>
+                    <option value="10">10 Min (Pause)</option>
+                    <option value="custom">Benutzerdefiniert</option>
+                </select>
+                
+                <div style="display:flex; gap: 10px; align-items: center;">
+                    <label style="margin:0; cursor:pointer;"><input type="radio" name="tm_dir" value="-1" checked onchange="updateDirection()"> Abwärts</label>
+                    <label style="margin:0; cursor:pointer;"><input type="radio" name="tm_dir" value="1" onchange="updateDirection()"> Aufwärts</label>
+                </div>
+                
+                <div id="customTimeInput" style="display:none; align-items: center; gap: 5px;">
+                    Minuten: <input type="number" id="customMin" value="20" style="width: 50px; padding: 2px;" onchange="applyPreset()">
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- SIDEBAR CONTROLS -->
@@ -206,6 +332,11 @@
                 <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 15px;">Laden</button>
             </div>
             <div class="loader" id="loader">Lade Namen...</div>
+        </div>
+
+        <div class="form-group">
+             <label>Update Intervall (Sekunden)</label>
+             <input type="number" id="updateInterval" value="10" min="1" onchange="generate()">
         </div>
 
         <div class="section-title">Heimteam</div>
@@ -488,6 +619,9 @@
             customTrigger.style.display = 'none';
         }
 
+        const interval = document.getElementById('updateInterval').value;
+        if(interval) params.append('interval', interval);
+
         const hn = document.getElementById('hn').value;
         const hp = document.getElementById('hp').value;
         const hs = document.getElementById('hs').value;
@@ -572,6 +706,7 @@
     function saveSettings() {
         const settings = {
             gameId: document.getElementById('gameId').value,
+            interval: document.getElementById('updateInterval').value,
             design: document.getElementById('designStyle').value,
             hn: document.getElementById('hn').value,
             hp: document.getElementById('hp').value,
@@ -591,6 +726,7 @@
             try {
                 const s = JSON.parse(stored);
                 if (s.gameId) document.getElementById('gameId').value = s.gameId;
+                if (s.interval) document.getElementById('updateInterval').value = s.interval;
                 if (s.design) document.getElementById('designStyle').value = s.design;
                 if (s.hn) document.getElementById('hn').value = s.hn;
                 if (s.hp) document.getElementById('hp').value = s.hp;
@@ -615,6 +751,151 @@
         loadSettings();
         fetchGameDetails();
     };
+    // --- TIMER LOGIC ---
+    let timerState = {
+        running: false,
+        seconds: 1200, // Default 20 min
+        target: 1200,  // Target (start or end)
+        direction: -1, // -1 down, 1 up
+        visible: false,
+        lastTick: 0
+    };
+    
+    let timerInterval = null;
+    const timerChannel = new BroadcastChannel('scoreboard_timer');
+
+    function formatTime(totalSeconds) {
+        const sign = totalSeconds < 0 ? "-" : "";
+        const s = Math.abs(totalSeconds);
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${sign}${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+        const el = document.getElementById('timerValue');
+        el.innerText = formatTime(timerState.seconds);
+        
+        // Broadcast
+        timerChannel.postMessage({
+            type: 'timer_update',
+            timeString: formatTime(timerState.seconds),
+            visible: timerState.visible,
+            running: timerState.running
+        });
+    }
+    
+    function toggleTimerVis() {
+        timerState.visible = !timerState.visible;
+        const btn = document.getElementById('visToggle');
+        if(timerState.visible) {
+            btn.classList.add('active');
+            btn.querySelector('span:nth-child(2)').innerText = "Verbergen";
+        } else {
+            btn.classList.remove('active');
+            btn.querySelector('span:nth-child(2)').innerText = "Anzeigen";
+        }
+        updateTimerDisplay();
+    }
+
+    function startTimer() {
+        if(timerState.running) return;
+        timerState.running = true;
+        timerState.lastTick = Date.now();
+        
+        timerInterval = setInterval(() => {
+            const now = Date.now();
+            const delta = now - timerState.lastTick;
+            
+            // Should be approx 1000ms
+            if(delta >= 1000) {
+                // Determine step
+                const steps = Math.floor(delta / 1000);
+                timerState.seconds += (steps * timerState.direction);
+                timerState.lastTick += (steps * 1000);
+                
+                // Check stops
+                if (timerState.direction === -1 && timerState.seconds <= 0) {
+                    timerState.seconds = 0;
+                    stopTimer();
+                } else if (timerState.direction === 1 && timerState.seconds >= timerState.target && timerState.target > 0) {
+                    // Only stop going up if we have a target (non-zero usually, but here target is the 'length')
+                    // Logic check: "toggle: count up/down".
+                    // If up, usually starts at 0. 'Target' might be the max time.
+                    // For now, let's just let it run unless we explicitly define a stop.
+                    // The user said "target time when it automatically stops".
+                    if(timerState.seconds >= timerState.target) {
+                        timerState.seconds = timerState.target;
+                        stopTimer();
+                    }
+                }
+                
+                updateTimerDisplay();
+            }
+        }, 100); // Check more often for precision
+        updateTimerDisplay();
+    }
+
+    function stopTimer() {
+        timerState.running = false;
+        clearInterval(timerInterval);
+        updateTimerDisplay();
+    }
+
+    function resetTimer() {
+        stopTimer();
+        applyPreset();
+    }
+
+    function adjustTime(sec) {
+        timerState.seconds += sec;
+        if(timerState.seconds < 0) timerState.seconds = 0;
+        updateTimerDisplay();
+    }
+    
+    function updateDirection() {
+        const r = document.querySelector('input[name="tm_dir"]:checked');
+        timerState.direction = parseInt(r.value);
+        // If we switch direction, do we reset?
+        // Usually safer to apply preset again to ensure start/end points are correct
+        applyPreset();
+    }
+
+    function applyPreset() {
+        const val = document.getElementById('timerPreset').value;
+        const r = document.querySelector('input[name="tm_dir"]:checked');
+        let mins = 20;
+
+        if (val === 'custom') {
+            document.getElementById('customTimeInput').style.display = 'flex';
+            mins = parseInt(document.getElementById('customMin').value) || 0;
+        } else {
+            document.getElementById('customTimeInput').style.display = 'none';
+            mins = parseInt(val);
+        }
+
+        const totalSec = mins * 60;
+        timerState.target = totalSec;
+        timerState.direction = parseInt(r.value);
+
+        // Logic:
+        // If DOWN: start = target (e.g. 20:00), end = 0.
+        // If UP: start = 0, end = target (e.g. 20:00).
+        
+        if (timerState.direction === -1) {
+            timerState.seconds = totalSec;
+        } else {
+            timerState.seconds = 0;
+        }
+        
+        updateTimerDisplay();
+    }
+
+    // Initialize Broadcast on load to ensure state is clean
+    window.addEventListener('load', () => {
+        applyPreset(); // Set default 20:00
+    });
+
 </script>
 
 </body>
