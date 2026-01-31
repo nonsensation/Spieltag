@@ -420,6 +420,7 @@
                         <li><code>name_away</code>: Gast Name</li>
                         <li><code>score_away</code>: Gast Tore</li>
                     </ul>
+                    <p style="font-size:0.9em; color:#666; margin-top:5px;">Strafen werden autom. in <code>.home</code> und <code>.away</code> Container eingefügt (Klasse: <code>.penalty-box</code>).</p>
 
                     <h4 style="margin-top:15px;">CSS Variablen</h4>
                     <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
@@ -493,7 +494,16 @@
             <div class="url-text" id="finalUrl"></div>
             <button id="copyBtn" onclick="copyAndOpen()">Kopieren & Öffnen</button>
             
-            <div id="qrcode"></div>
+            <div id="qrcode" onclick="openQrModal()" title="Klicken für Großansicht" style="cursor:pointer;"></div>
+        </div>
+
+        <!-- Large QR Modal -->
+        <div id="qrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2200; justify-content:center; align-items:center;">
+             <div style="background:white; padding:20px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+                 <h3 style="margin:0;">Scan mich</h3>
+                 <div id="qrLarge"></div>
+                 <button class="secondary" onclick="document.getElementById('qrModal').style.display='none'">Schließen</button>
+             </div>
         </div>
         
         <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center;">
@@ -507,20 +517,21 @@
 
 <!-- Penalty Modal -->
 <div id="penaltyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; display:flex; flex-direction:column; gap:15px; max-height:90vh;">
+    <div style="background:white; padding:20px; border-radius:8px; width:95%; max-width:800px; display:flex; flex-direction:column; gap:15px; max-height:90vh;">
         <h3 style="margin:0; text-align:center;">Strafe hinzufügen</h3>
         
-        <!-- Team Selection -->
-        <div style="display:flex; gap:10px;">
-            <button id="btnPenHome" onclick="selectPenaltyTeam('home')" style="flex:1; background:#ddd; color:#333;">Heim</button>
-            <button id="btnPenGuest" onclick="selectPenaltyTeam('guest')" style="flex:1; background:#ddd; color:#333;">Gast</button>
-        </div>
+        <!-- Rosters Grid -->
+        <div style="display: flex; gap: 15px; flex: 1; overflow: hidden; min-height: 300px;">
+            <!-- Home Roster -->
+            <div style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                <div id="phTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">HEIM</div>
+                <div id="listHome" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
+            </div>
 
-        <!-- Player List -->
-        <div style="flex:1; overflow-y:auto; border:1px solid #eee; border-radius:4px; min-height:150px;">
-            <div id="penaltyPlayerList" style="display:flex; flex-direction:column;">
-                <!-- Filled via JS -->
-                <div style="padding:10px; color:#888; text-align:center; font-style:italic;">Bitte erst Team wählen...</div>
+            <!-- Guest Roster -->
+            <div style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                <div id="pgTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">GAST</div>
+                <div id="listGuest" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
             </div>
         </div>
 
@@ -544,8 +555,8 @@
         <input type="hidden" id="selectedPenaltyPlayerNumber">
         <input type="hidden" id="selectedPenaltyDuration">
         
-        <div id="penaltySummary" style="padding:10px; background:#f8f9fa; border-radius:4px; font-weight:bold; text-align:center;">
-            ...
+        <div id="penaltySummary" style="padding:10px; background:#f8f9fa; border-radius:4px; font-weight:bold; text-align:center; min-height: 1.2em;">
+            Bitte Spieler wählen...
         </div>
 
         <div style="display:flex; gap:10px;">
@@ -931,9 +942,91 @@
         }
     }
 
+    function openQrModal() {
+        const modal = document.getElementById('qrModal');
+        modal.style.display = 'flex';
+        const container = document.getElementById('qrLarge');
+        container.innerHTML = "";
+        const url = document.getElementById('finalUrl').innerText;
+        
+        new QRCode(container, {
+            text: url,
+            width: 300,
+            height: 300,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.L
+        });
+    }
+
+    // --- DYNAMIC DESIGN LOADING ---
+    const knownDesigns = {
+        'default': 'Standard (Original)',
+        'retro': 'Retro Pixel',
+        'modern': 'Modern Schlicht',
+        'neon': 'Neon',
+        'broadcast': 'TV Übertragung',
+        'glass': 'Glassmorphism',
+        'bold': 'Fett Gedruckt',
+        'material': 'Material Karte',
+        'cyberpunk': 'Cyberpunk',
+        'islands': 'Schwebende Inseln'
+    };
+
+    async function loadDesigns() {
+        const select = document.getElementById('designStyle');
+        const currentVal = select.value;
+        
+        try {
+            // Attempt to fetch directory listing from http.server
+            const res = await fetch('designs/');
+            if(res.ok) {
+                const text = await res.text();
+                // Simple parser for standard Apache/Python directory listings
+                // Look for href="filename.html"
+                const regex = /href="([^"]+\.html)"/g;
+                let match;
+                const foundFiles = new Set();
+                
+                while ((match = regex.exec(text)) !== null) {
+                    const filename = match[1];
+                    // Remove .html
+                    const name = filename.replace('.html', '');
+                    foundFiles.add(name);
+                }
+                
+                if(foundFiles.size > 0) {
+                    select.innerHTML = ''; // Clear current
+                    
+                    // Add found files
+                    foundFiles.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.innerText = knownDesigns[name] || (name.charAt(0).toUpperCase() + name.slice(1)); // Title Case fallback
+                        select.appendChild(opt);
+                    });
+                    
+                    // Always add Custom
+                    const optCustom = document.createElement('option');
+                    optCustom.value = 'custom';
+                    optCustom.innerText = 'Eigener Code';
+                    select.appendChild(optCustom);
+                    
+                    // Restore selection if valid
+                    if(foundFiles.has(currentVal) || currentVal === 'custom') {
+                        select.value = currentVal;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Could not auto-detect designs. Using static list.", e);
+        }
+    }
+
     window.onload = function() {
         loadSettings();
         fetchGameDetails();
+        loadDesigns();
     };
     // --- TIMER LOGIC ---
     let timerState = {
@@ -1017,86 +1110,78 @@
         document.getElementById('selectedPenaltyTeam').value = '';
         document.getElementById('selectedPenaltyPlayerName').value = '';
         document.getElementById('selectedPenaltyPlayerNumber').value = '';
-        document.getElementById('selectedPenaltyDuration').value = '';
+        // Default 2 min
+        setPenaltyDuration(120);
+
+        // Populate Lists
+        const hc = document.getElementById('hp').value;
+        const gc = document.getElementById('gp').value;
+        const hn = document.getElementById('hn').value || (gameDataFull ? gameDataFull.home_team_name : 'HEIM');
+        const gn = document.getElementById('gn').value || (gameDataFull ? gameDataFull.guest_team_name : 'GAST');
+
+        const phTitle = document.getElementById('phTitle');
+        const pgTitle = document.getElementById('pgTitle');
         
-        document.getElementById('btnPenHome').style.background = '#ddd';
-        document.getElementById('btnPenHome').style.color = '#333';
-        document.getElementById('btnPenGuest').style.background = '#ddd';
-        document.getElementById('btnPenGuest').style.color = '#333';
+        phTitle.innerText = hn;
+        phTitle.style.borderBottom = `3px solid ${hc}`;
+        pgTitle.innerText = gn;
+        pgTitle.style.borderBottom = `3px solid ${gc}`;
+
+        renderRosterToContainer('home', gameDataFull?.players?.home, 'listHome');
+        renderRosterToContainer('guest', gameDataFull?.players?.guest, 'listGuest');
+
         
-        document.getElementById('penaltyPlayerList').innerHTML = '<div style="padding:10px; color:#888; text-align:center;">Bitte Team wählen</div>';
-        updatePenaltySummary();
+        document.getElementById('penaltySummary').innerText = "Bitte Spieler wählen...";
     }
 
-    function closePenaltyModal() {
-        document.getElementById('penaltyModal').style.display = 'none';
-    }
-
-    function selectPenaltyTeam(team) {
-        document.getElementById('selectedPenaltyTeam').value = team;
-        
-        // Style buttons
-        const btnHome = document.getElementById('btnPenHome');
-        const btnGuest = document.getElementById('btnPenGuest');
-        
-        // Fetch colors from inputs
-        const homeColor = document.getElementById('hp').value;
-        const guestColor = document.getElementById('gp').value;
-
-        if (team === 'home') {
-            btnHome.style.background = homeColor;
-            btnHome.style.color = 'white'; // simplistic contrast
-            btnGuest.style.background = '#ddd';
-            btnGuest.style.color = '#333';
-            renderPlayerList(team, gameDataFull?.players?.home);
-        } else {
-            btnGuest.style.background = guestColor;
-            btnGuest.style.color = 'white';
-            btnHome.style.background = '#ddd';
-            btnHome.style.color = '#333';
-            renderPlayerList(team, gameDataFull?.players?.guest);
-        }
-        updatePenaltySummary();
-    }
-
-    function renderPlayerList(team, players) {
-        const container = document.getElementById('penaltyPlayerList');
+    function renderRosterToContainer(team, players, containerId) {
+        const container = document.getElementById(containerId);
         container.innerHTML = '';
         
         if (!players || players.length === 0) {
-            container.innerHTML = '<div style="padding:10px; text-align:center;">Keine Spielerdaten verfügbar.</div>';
+            container.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">Kein Roster</div>';
             return;
         }
 
         players.forEach(p => {
-            const row = document.createElement('div');
-            row.style.padding = '8px';
-            row.style.borderBottom = '1px solid #eee';
-            row.style.cursor = 'pointer';
-            row.style.display = 'flex';
-            row.style.gap = '10px';
-            
-            // Map JSON properties
-            const num = p.trikot_number;
-            const fname = p.player_firstname;
-            const lname = p.player_name;
+             const row = document.createElement('div');
+             row.className = 'roster-item';
+             row.dataset.team = team;
+             row.style.padding = '10px';
+             row.style.borderBottom = '1px solid #eee';
+             row.style.cursor = 'pointer';
+             row.style.display = 'flex';
+             row.style.alignItems = 'center';
+             row.style.gap = '10px';
+             
+             const num = p.trikot_number;
+             const fname = p.player_firstname;
+             const lname = p.player_name;
 
-            row.onclick = () => {
-                // Highlight
-                Array.from(container.children).forEach(c => c.style.background = 'transparent');
-                row.style.background = '#eef';
-                
-                document.getElementById('selectedPenaltyPlayerName').value = lname || fname; 
-                document.getElementById('selectedPenaltyPlayerNumber').value = num || '';
-                updatePenaltySummary();
-            };
-            
-            row.innerHTML = `
-                <span style="font-weight:bold; width:30px;">${num || '-'}</span>
-                <span>${fname} ${lname}</span>
-            `;
-            container.appendChild(row);
+             row.onclick = () => {
+                 // Clear ALL highlights
+                 document.querySelectorAll('.roster-item').forEach(x => x.style.background = 'transparent');
+                 // Highlight self
+                 row.style.background = '#dbeafe';
+                 
+                 document.getElementById('selectedPenaltyTeam').value = team;
+                 document.getElementById('selectedPenaltyPlayerName').value = lname || fname; 
+                 document.getElementById('selectedPenaltyPlayerNumber').value = num || '';
+                 updatePenaltySummary();
+             };
+
+             row.innerHTML = `
+                <span style="font-weight:bold; background:#333; color:white; width:24px; height:24px; display:flex; justify-content:center; align-items:center; border-radius:3px; font-size:0.85em;">${num || '-'}</span>
+                <span style="font-size:0.95em;">${lname}, ${fname.charAt(0)}.</span>
+             `;
+             container.appendChild(row);
         });
+    }
+
+    // Deprecated old functions removed/replaced
+
+    function closePenaltyModal() {
+        document.getElementById('penaltyModal').style.display = 'none';
     }
 
     function setPenaltyDuration(sec) {
@@ -1110,13 +1195,15 @@
         const number = document.getElementById('selectedPenaltyPlayerNumber').value;
         const dur = document.getElementById('selectedPenaltyDuration').value;
         
+        if (!team) return;
+
         let text = [];
-        if(team) text.push(team === 'home' ? 'HEIM' : 'GAST');
+        text.push(team === 'home' ? 'HEIM' : 'GAST');
         if(number) text.push(`#${number}`);
         if(name) text.push(name);
         if(dur) text.push(formatTime(dur));
         
-        document.getElementById('penaltySummary').innerText = text.length ? text.join(' | ') : '...';
+        document.getElementById('penaltySummary').innerText = text.join(' | ');
     }
 
     function commitPenalty() {
@@ -1125,9 +1212,21 @@
         const number = document.getElementById('selectedPenaltyPlayerNumber').value;
         const dur = parseInt(document.getElementById('selectedPenaltyDuration').value);
         
-        if (!team || !dur) {
-            alert('Bitte Team und Dauer wählen!');
+        if (!team) {
+            alert('Bitte Spieler wählen!');
             return;
+        }
+
+        // Determine Minutes Text (simplistic)
+        let minText = "2'";
+        if (dur === 120) minText = "2'";
+        else if (dur === 240) minText = "2'+2'";
+        else if (dur === 300) minText = "5'";
+        else if (dur === 600) minText = "10'";
+        else {
+             // Custom
+             const m = Math.floor(dur / 60);
+             minText = m + "'";
         }
         
         penalties.push({
@@ -1136,7 +1235,9 @@
             player: name || 'Spieler',
             number: number || '00',
             remaining: dur,
-            max: dur
+            max: dur,
+            minutesCode: minText,
+            reasonCode: -1
         });
         
         closePenaltyModal();
@@ -1157,22 +1258,36 @@
         penalties.forEach(p => {
             const el = document.createElement('div');
             el.className = 'penalty-tag';
-            // Styling for controller tags
-            el.style.background = 'rgba(0,0,0,0.7)';
+            // Styling for controller tags with better touch area
+            el.style.background = 'rgba(0,0,0,0.85)';
+            el.style.border = '1px solid rgba(255,255,255,0.2)';
             el.style.color = '#fff';
-            el.style.padding = '4px 8px';
-            el.style.borderRadius = '4px';
-            el.style.fontSize = '0.8em';
+            el.style.padding = '8px 12px'; // Increased padding
+            el.style.borderRadius = '6px';
+            el.style.fontSize = '0.9em';
             el.style.display = 'flex';
             el.style.alignItems = 'center';
-            el.style.gap = '8px';
+            el.style.gap = '10px';
+            el.style.cursor = 'pointer';
+            el.style.marginBottom = '5px';
+            el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
             
             el.innerHTML = `
-                <span style="font-weight:bold; color:#ffcc00;">${formatTime(p.remaining)}</span>
-                <span>#${p.number}</span>
-                <span style="font-size:0.8em; opacity:0.7;">${p.player.substring(0,8)}</span>
-                <span onclick="removePenalty(${p.id})" style="cursor:pointer; color:#ff5555; margin-left:5px; font-weight:bold;">&times;</span>
+                <span style="font-weight:bold; color:#ffcc00; font-family:monospace; font-size:1.1em;">${formatTime(p.remaining)}</span>
+                <span style="background:#555; padding:2px 5px; borderRadius:3px; font-weight:bold;">#${p.number}</span>
+                <span style="font-size:0.9em; opacity:0.9;">${p.player.split(' ')[0]}</span>
+                <span style="color:#ff5555; font-weight:bold; font-size:1.4em; padding:0 5px;">&times;</span>
             `;
+
+            // Make whole tag clickable for easier removal on touch? 
+            // Or just the X. User said "easier for removing them". 
+            // Large X is good. Let's make onclick on the whole element for ease of use.
+            el.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm(`Strafe von #${p.number} wirklich löschen?`)) {
+                    removePenalty(p.id);
+                }
+            };
             
             if(p.team === 'home') cHome.appendChild(el);
             else cGuest.appendChild(el);

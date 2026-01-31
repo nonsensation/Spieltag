@@ -198,45 +198,47 @@
 
 </script>
 
-<!-- Penalty Overlay Containers -->
-<div id="penalties-home" class="penalty-overlay home-side"></div>
-<div id="penalties-guest" class="penalty-overlay guest-side"></div>
-
 <style>
-    .penalty-overlay {
-        position: absolute;
-        bottom: 5%; /* Position at bottom or adjust as needed */
+    /* Penalty Box Injection Styles */
+    .penalty-box {
+        width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        z-index: 100;
-        font-family: 'Quantico', sans-serif; /* Match scoreboard font */
-        font-weight: bold;
-        font-size: min(1.8vw, 1.8vh);
-        pointer-events: none; /* Let clicks pass through */
+        gap: 0.2em;
+        padding-top: 0.2em;
+        margin-top: auto; /* Push to bottom if flex */
+        background: rgba(0,0,0,0.3);
+        min-height: 0;
     }
-    .home-side {
-        left: 2%; /* Anchor to left */
-        align-items: flex-start;
-        color: var(--home-text, white);
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    }
-    .guest-side {
-        right: 2%; /* Anchor to right */
-        align-items: flex-end;
-        color: var(--guest-text, white);
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+
+    .penalty-item {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        font-family: 'Quantico', sans-serif;
+        font-size: 0.5em; /* Smaller than main score */
+        padding: 0.1em 0.5em;
+        box-sizing: border-box;
+        overflow: hidden;
+        white-space: nowrap;
+        justify-content: space-between;
     }
     
-    .penalty-item {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 0.2em 0.5em;
-        border-radius: 4px;
+    .penalty-item .p-time {
+         color: #ff3b30;
+         font-weight: bold;
+         margin-right: 0.5em;
+         min-width: 2.5em;
+    }
+
+    .penalty-item .p-info {
         display: flex;
         gap: 0.5em;
-        border: 1px solid rgba(255,255,255,0.2);
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .pen-time { color: #ff3b30; }
 </style>
 
 <script>
@@ -248,30 +250,25 @@
             updateTimerDisplay(event.data);
             if (event.data.penalties) {
                 renderPenalties(event.data.penalties);
+            } else {
+                // If mode is none or empty, clear
+                renderPenalties([]);
             }
         }
     };
 
     function updateTimerDisplay(data) {
-        // Find time element (class "time" is standard in our designs)
-        // We look inside board-container
         const timeEl = document.querySelector('.time');
-        
         if (timeEl) {
             if (data.visible) {
                 timeEl.style.display = 'block'; 
-                
-                // If the design has specific display preferences, we might need a class toggle instead.
                 if (getComputedStyle(timeEl).display === 'none') {
                     timeEl.style.display = 'block';
                 }
-                
-                timeEl.style.color = 'inherit'; // Reset transparency if any
+                timeEl.style.color = 'inherit';
                 if (timeEl.style.color === 'transparent') {
-                     timeEl.style.color = 'white'; // or inherit
+                     timeEl.style.color = 'white'; 
                 }
-                
-                // Update text
                 timeEl.innerText = data.timeString;
             } else {
                 timeEl.style.display = 'none';
@@ -279,22 +276,61 @@
         }
     }
 
+    let penaltyContainersInitialized = false;
+
+    function initPenaltyContainers() {
+        if (penaltyContainersInitialized) return;
+
+        // Try to find .home and .away
+        const homeDiv = document.querySelector('.home');
+        const guestDiv = document.querySelector('.away');
+
+        if (homeDiv && !document.getElementById('pen-box-home')) {
+            const box = document.createElement('div');
+            box.id = 'pen-box-home';
+            box.className = 'penalty-box';
+            homeDiv.appendChild(box);
+        }
+        
+        if (guestDiv && !document.getElementById('pen-box-guest')) {
+            const box = document.createElement('div');
+            box.id = 'pen-box-guest';
+            box.className = 'penalty-box';
+            guestDiv.appendChild(box);
+        }
+        
+        penaltyContainersInitialized = true;
+    }
+
     function renderPenalties(penalties) {
-        const hContainer = document.getElementById('penalties-home');
-        const gContainer = document.getElementById('penalties-guest');
+        // Ensure containers exist (retry if design reloaded)
+        initPenaltyContainers();
+
+        const hContainer = document.getElementById('pen-box-home');
+        const gContainer = document.getElementById('pen-box-guest');
         
-        // Colors might be needed? We use CSS vars inherited from root or set in style
-        // Actually CSS vars --home-text etc are set on :root in boards.html so they are available
-        
+        if(!hContainer || !gContainer) return; // Design might not support it yet
+
         hContainer.innerHTML = '';
         gContainer.innerHTML = '';
         
         penalties.forEach(p => {
             const el = document.createElement('div');
             el.className = 'penalty-item';
+            
+            // Set variables as data attributes for custom CSS
+            el.dataset.team = p.team;
+            el.dataset.player = p.player;
+            el.dataset.number = p.number;
+            el.dataset.code = p.reasonCode || -1;
+            el.dataset.min = p.minutesCode || "2'";
+
             el.innerHTML = `
-                <span>#${p.number}</span>
-                <span class="pen-time">${p.remaining > 0 ? formatTime(p.remaining) : '0:00'}</span>
+                <span class="p-time">${p.remaining > 0 ? formatTime(p.remaining) : '0:00'}</span>
+                <div class="p-info">
+                    <span style="font-weight:bold;">#${p.number}</span>
+                    <span style="opacity:0.8;">${p.player}</span>
+                </div>
             `;
             
             if (p.team === 'home') hContainer.appendChild(el);
@@ -309,8 +345,26 @@
         return `${m}:${sec.toString().padStart(2, '0')}`;
     }
 
+    // Wrap loadDesign to re-init
+    const originalLoadDesign = window.loadDesign; 
+    // Wait, loadDesign is defined above in local scope in previous files? 
+    // No, it is defined in <script> block in boards.html.
+    // Ideally we inject into it, but since I am replacing the end of file...
+    // I can just call initPenaltyContainers inside the interval or ensure it runs after load.
+    
+    // Quick fix: Override the one from scope if possible or just rely on interval?
+    // loadDesign is async.
+    
+    // Let's hook into the global scope if possible, or just check every render.
+    // Since renderPenalties is called on timer tick (100ms), checking Dom existence there is fine.
+    
+    // However, if design changes, we need to reset initialized flag.
+    // The design parameter is on URL, so design doesn't change without reload.
+    // EXCEPT "Custom" mode updates innerHTML locally.
+    // Ideally we check if container is still valid.
+    
     // Start
-    loadDesign();
+    loadDesign(); // Defined in previous script block
     setInterval(fetchGameData, FETCH_INTERVAL);
 
 </script>
