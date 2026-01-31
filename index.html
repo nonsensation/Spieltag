@@ -104,92 +104,192 @@
             display: block;
         }
 
+        /* --- RESPONSIVE & UI IMPROVEMENTS --- */
+        
+        /* Mobile Breakpoint */
         @media (max-width: 900px) {
-            .container { flex-direction: column-reverse; height: auto; overflow: visible; }
-            body { height: auto; overflow: auto; }
-            .controls { width: 100%; min-width: 0; }
-            .preview { min-height: 400px; }
+            .container { 
+                flex-direction: column; /* Preview on top, controls below */
+                height: auto; 
+                overflow-y: auto;
+            }
+            body { 
+                height: auto; 
+                overflow-y: auto; 
+            }
+            .controls { 
+                width: 100%; 
+                min-width: 0; 
+                box-shadow: none;
+                border-top: 1px solid #ddd;
+            }
+            .preview { 
+                min-height: 50vh; /* Takes half screen on mobile */
+                border-radius: 0;
+                border-left: none; border-right: none;
+                border-top: none;
+            }
         }
-        /* Timer Controls Overlay */
+
+        /* Input Touch Improvements */
+        input, select, button {
+            min-height: 40px; /* Touch target size */
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
+        
+        /* Timer Panel Revamp */
         .timer-panel {
-            background: #1a1a1a;
+            background: #111;
             width: 100%;
-            padding: 10px 20px;
+            padding: 15px;
             box-sizing: border-box;
             border-top: 1px solid #333;
             color: #eee;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            display: grid;
+            gap: 15px;
+            /* Default: Standard flex/grid layout */
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: center;
-            z-index: 100;
         }
 
-        .timer-group {
+        @media (max-width: 700px) {
+            .timer-panel {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        /* Left: Time Display & Vis */
+        .timer-section-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
+        @media (max-width: 700px) { .timer-section-left { justify-content: center; } }
 
         .timer-display {
             font-family: 'Courier New', monospace;
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: bold;
+            color: #ff3b30;
             background: #000;
-            color: #ff0000; /* Digital clock style */
             padding: 5px 15px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            min-width: 120px;
-            text-align: center;
-        }
-
-        .timer-btn {
-            padding: 8px 12px;
-            font-size: 0.85em;
-            cursor: pointer;
-            border: 1px solid #444;
-            border-radius: 4px;
-            background: #333;
-            color: #ddd;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        .timer-btn:hover { background: #444; }
-        .timer-btn.primary { background: #007bff; color: white; border: none; }
-        .timer-btn.primary:hover { background: #0056b3; }
-        .timer-btn.danger { background: #dc3545; color: white; border: none; }
-        .timer-btn.danger:hover { background: #bd2130; }
-        .timer-btn.success { background: #28a745; color: white; border: none; }
-        .timer-btn.success:hover { background: #218838; }
-        
-        .timer-btn.active {
-            background: #ddd;
-            color: #333;
-            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid #333;
+            line-height: 1;
+            cursor: pointer; /* Click to edit? Maybe later */
         }
 
         .vis-toggle {
+            cursor: pointer;
+            opacity: 0.4;
+            transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.7em;
-            cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.2s;
+            font-size: 0.75em;
+            color: #fff;
         }
         .vis-toggle:hover { opacity: 0.8; }
-        .vis-toggle.active { opacity: 1; color: #4CAF50; }
-        .vis-toggle i { font-size: 1.5em; margin-bottom: 2px; }
+        .vis-toggle.active { opacity: 1; color: #4cd964; text-shadow: 0 0 10px rgba(76, 217, 100, 0.5); }
+        .vis-toggle i { font-size: 1.8em; margin-bottom: 2px; font-style: normal; }
 
+        /* Center: Main Controls */
+        .timer-section-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-main-control {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 6rem; /* Controls SVG size via em */
+            padding: 0;
+            margin: 10px;
+            color: white; /* For currentColor fill */
+            
+            /* Flexbox Centering */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .btn-main-control svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+            display: block;
+        }
+        .btn-main-control:active { transform: scale(0.95); }
+        
+        .btn-play { background: #34c759; color: white; }
+        .btn-play:hover { background: #30b753; box-shadow: 0 0 20px rgba(52, 199, 89, 0.4); }
+        
+        .btn-stop { background: #ff3b30; color: white; }
+        .btn-stop:hover { background: #e0362b; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); }
+
+        /* Right: Adjustments */
+        .timer-section-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        @media (max-width: 700px) { .timer-section-right { align-items: center; } }
+
+        .timer-adjust-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-adj {
+            background: #333;
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            width: 45px;
+            transition: background 0.2s;
+        }
+        .btn-adj:hover { background: #444; }
+
+        .timer-settings-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
         .timer-select {
             background: #222;
             color: white;
             border: 1px solid #444;
-            padding: 5px;
-            border-radius: 3px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .btn-reset:hover { border-color: #888; color: #fff; }
+
+        /* Hide logic helpers */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -202,46 +302,54 @@
         
         <!-- Timer Controls - Added as overlay/panel under preview -->
         <div class="timer-panel">
-            <div class="timer-group">
-                <!-- Visibility Toggle -->
+            
+            <!-- LEFT: Display & Vis -->
+            <div class="timer-section-left">
                 <div id="visToggle" class="vis-toggle" onclick="toggleTimerVis()" title="Klicke zum Anzeigen auf dem Scoreboard">
-                    <span style="font-size:1.5em;">👁️</span>
-                    <span>Anzeigen</span>
+                    <i>👁️</i>
+                    <span>LIVE</span>
                 </div>
-                
-                <!-- Time Display -->
-                <div class="timer-display" id="timerValue">20:00</div>
+                <div class="timer-display" id="timerValue" onclick="toggleTimerVis()">20:00</div>
             </div>
 
-            <div class="timer-group" style="flex-direction: column; gap: 5px;">
-                <div style="display:flex; gap: 5px;">
-                    <button class="timer-btn success" onclick="startTimer()">START</button>
-                    <button class="timer-btn danger" onclick="stopTimer()">STOP</button>
-                    <button class="timer-btn" onclick="resetTimer()">RESET</button>
-                </div>
-                <div style="display:flex; gap: 5px;">
-                     <button class="timer-btn" onclick="adjustTime(10)" title="+10s">+10s</button>
-                     <button class="timer-btn" onclick="adjustTime(-10)" title="-10s">-10s</button>
-                     <button class="timer-btn" onclick="adjustTime(60)" title="+1m">+1m</button>
-                     <button class="timer-btn" onclick="adjustTime(-60)" title="-1m">-1m</button>
-                </div>
+            <!-- CENTER: Big Play Button -->
+            <div class="timer-section-center">
+                <button id="btnStart" class="btn-main-control btn-play" onclick="startTimer()" title="Start">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button id="btnStop" class="btn-main-control btn-stop hidden" onclick="stopTimer()" title="Stop">
+                    <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
             </div>
 
-            <div class="timer-group" style="flex-direction: column; align-items: flex-start; font-size: 0.9em; gap: 5px;">
-                <select id="timerPreset" class="timer-select" onchange="applyPreset()" style="width: 100%;">
-                    <option value="20">20 Min (Spiel)</option>
-                    <option value="15">15 Min (Spiel)</option>
-                    <option value="10">10 Min (Pause)</option>
-                    <option value="custom">Benutzerdefiniert</option>
-                </select>
-                
-                <div style="display:flex; gap: 10px; align-items: center;">
-                    <label style="margin:0; cursor:pointer;"><input type="radio" name="tm_dir" value="-1" checked onchange="updateDirection()"> Abwärts</label>
-                    <label style="margin:0; cursor:pointer;"><input type="radio" name="tm_dir" value="1" onchange="updateDirection()"> Aufwärts</label>
+            <!-- RIGHT: Adjustments & Settings -->
+            <div class="timer-section-right">
+                <div class="timer-adjust-row">
+                     <button class="btn-adj" onclick="adjustTime(-60)">-1m</button>
+                     <button class="btn-adj" onclick="adjustTime(-10)">-10s</button>
+                     <button class="btn-adj" onclick="adjustTime(10)">+10s</button>
+                     <button class="btn-adj" onclick="adjustTime(60)">+1m</button>
                 </div>
                 
-                <div id="customTimeInput" style="display:none; align-items: center; gap: 5px;">
-                    Minuten: <input type="number" id="customMin" value="20" style="width: 50px; padding: 2px;" onchange="applyPreset()">
+                <div class="timer-settings-row">
+                    <button class="btn-reset" onclick="resetTimer()">RESET</button>
+                    
+                    <select id="timerPreset" class="timer-select" onchange="applyPreset()">
+                        <option value="20">20 Min (Spiel)</option>
+                        <option value="15">15 Min (Spiel)</option>
+                        <option value="10">10 Min (Pause)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+
+                    <div style="font-size:0.8em; color:#888; display: flex; gap: 5px;">
+                        <label title="Abwärts"><input type="radio" name="tm_dir" value="-1" checked onchange="updateDirection()"> ▼</label>
+                        <label title="Aufwärts"><input type="radio" name="tm_dir" value="1" onchange="updateDirection()"> ▲</label>
+                    </div>
+
+                </div>
+                
+                <div id="customTimeInput" style="display:none; align-items: center; gap: 5px; margin-top: 5px;">
+                    <input type="number" id="customMin" value="20" style="width: 50px; padding: 5px; background: #333; color: white; border: 1px solid #555;" onchange="applyPreset()"> Min
                 </div>
             </div>
         </div>
@@ -783,6 +891,18 @@
         const el = document.getElementById('timerValue');
         el.innerText = formatTime(timerState.seconds);
         
+        // Toggle Play/Stop Btn
+        const btnStart = document.getElementById('btnStart');
+        const btnStop = document.getElementById('btnStop');
+        
+        if(timerState.running) {
+            btnStart.classList.add('hidden');
+            btnStop.classList.remove('hidden');
+        } else {
+            btnStart.classList.remove('hidden');
+            btnStop.classList.add('hidden');
+        }
+
         // Broadcast
         timerChannel.postMessage({
             type: 'timer_update',
@@ -797,10 +917,10 @@
         const btn = document.getElementById('visToggle');
         if(timerState.visible) {
             btn.classList.add('active');
-            btn.querySelector('span:nth-child(2)').innerText = "Verbergen";
+            // btn.querySelector('span:nth-child(2)').innerText = "Verbergen";
         } else {
             btn.classList.remove('active');
-            btn.querySelector('span:nth-child(2)').innerText = "Anzeigen";
+            // btn.querySelector('span:nth-child(2)').innerText = "Anzeigen";
         }
         updateTimerDisplay();
     }
@@ -870,20 +990,25 @@
 
     function applyPreset() {
         const val = document.getElementById('timerPreset').value;
+        // Check if radio exists, otherwise default -1
         const r = document.querySelector('input[name="tm_dir"]:checked');
+        let dir = -1;
+        if(r) dir = parseInt(r.value);
+        
         let mins = 20;
 
         if (val === 'custom') {
             document.getElementById('customTimeInput').style.display = 'flex';
             mins = parseInt(document.getElementById('customMin').value) || 0;
         } else {
-            document.getElementById('customTimeInput').style.display = 'none';
+            const cti = document.getElementById('customTimeInput');
+            if(cti) cti.style.display = 'none';
             mins = parseInt(val);
         }
 
         const totalSec = mins * 60;
         timerState.target = totalSec;
-        timerState.direction = parseInt(r.value);
+        timerState.direction = dir;
 
         // Logic:
         // If DOWN: start = target (e.g. 20:00), end = 0.
@@ -894,6 +1019,11 @@
         } else {
             timerState.seconds = 0;
         }
+        
+        // If running, we might want to stop? Or allow hot swapping?
+        // Let's keep it simple: resetting time doesn't stop it if you just clicked, 
+        // BUT changing preset usually implies a reset.
+        stopTimer(); // Ensure we stop when changing preset completely
         
         updateTimerDisplay();
     }
