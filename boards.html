@@ -196,12 +196,59 @@
         }
     }
 
+</script>
+
+<!-- Penalty Overlay Containers -->
+<div id="penalties-home" class="penalty-overlay home-side"></div>
+<div id="penalties-guest" class="penalty-overlay guest-side"></div>
+
+<style>
+    .penalty-overlay {
+        position: absolute;
+        bottom: 5%; /* Position at bottom or adjust as needed */
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        z-index: 100;
+        font-family: 'Quantico', sans-serif; /* Match scoreboard font */
+        font-weight: bold;
+        font-size: min(1.8vw, 1.8vh);
+        pointer-events: none; /* Let clicks pass through */
+    }
+    .home-side {
+        left: 2%; /* Anchor to left */
+        align-items: flex-start;
+        color: var(--home-text, white);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    .guest-side {
+        right: 2%; /* Anchor to right */
+        align-items: flex-end;
+        color: var(--guest-text, white);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    
+    .penalty-item {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 0.2em 0.5em;
+        border-radius: 4px;
+        display: flex;
+        gap: 0.5em;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .pen-time { color: #ff3b30; }
+</style>
+
+<script>
     // --- 4. Timer Logic (BroadcastChannel) ---
     const timerChannel = new BroadcastChannel('scoreboard_timer');
     
     timerChannel.onmessage = (event) => {
         if (event.data.type === 'timer_update') {
             updateTimerDisplay(event.data);
+            if (event.data.penalties) {
+                renderPenalties(event.data.penalties);
+            }
         }
     };
 
@@ -212,19 +259,14 @@
         
         if (timeEl) {
             if (data.visible) {
-                timeEl.style.display = 'block'; // Or flex/initial depending on design, but block is safe for div
-                // If the design has specific display preferences, we might need a class toggle instead.
-                // But for now, let's force display if hidden.
-                // The default design has display:none by default.
+                timeEl.style.display = 'block'; 
                 
-                // If it was none, set to block or inherit. 
-                // Better: remove display:none if strictly setting visibility.
+                // If the design has specific display preferences, we might need a class toggle instead.
                 if (getComputedStyle(timeEl).display === 'none') {
                     timeEl.style.display = 'block';
                 }
                 
                 timeEl.style.color = 'inherit'; // Reset transparency if any
-                // Default design sets color: transparent.
                 if (timeEl.style.color === 'transparent') {
                      timeEl.style.color = 'white'; // or inherit
                 }
@@ -235,6 +277,36 @@
                 timeEl.style.display = 'none';
             }
         }
+    }
+
+    function renderPenalties(penalties) {
+        const hContainer = document.getElementById('penalties-home');
+        const gContainer = document.getElementById('penalties-guest');
+        
+        // Colors might be needed? We use CSS vars inherited from root or set in style
+        // Actually CSS vars --home-text etc are set on :root in boards.html so they are available
+        
+        hContainer.innerHTML = '';
+        gContainer.innerHTML = '';
+        
+        penalties.forEach(p => {
+            const el = document.createElement('div');
+            el.className = 'penalty-item';
+            el.innerHTML = `
+                <span>#${p.number}</span>
+                <span class="pen-time">${p.remaining > 0 ? formatTime(p.remaining) : '0:00'}</span>
+            `;
+            
+            if (p.team === 'home') hContainer.appendChild(el);
+            else gContainer.appendChild(el);
+        });
+    }
+
+    function formatTime(totalSeconds) {
+        const s = Math.abs(totalSeconds);
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m}:${sec.toString().padStart(2, '0')}`;
     }
 
     // Start
