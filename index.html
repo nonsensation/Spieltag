@@ -489,6 +489,12 @@
         padding: 0.15em 0.5em;
     } 
     
+    .time {
+        display: none;
+        padding: 0 0.5em;
+        /* Default hidden, controlled by JS */
+    }
+    
     .teams {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -546,6 +552,7 @@
 <div class="scoreboard">
     <div class="header">
         <div class="period" id="period">1. Drittel</div>
+        <div class="time">00:00</div>
     </div>
     <div class="teams">
         <!-- HOME -->
