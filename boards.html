@@ -36,585 +36,14 @@
             font-family: 'Roboto', sans-serif;
         }
 
-        .scoreboard {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: fit-content;
-            min-width: 40em;
-            max-width: 95vw;
-            font-size: var(--base-size);
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-
-        /* --- DOM Structure Defaults --- */
-        /* These classes are used by JS, so we keep their internal structure flexible via CSS */
-        .header { display: flex; justify-content: center; width: 100%; box-sizing: border-box;}
-        .body { display: flex; width: 100%; box-sizing: border-box;}
-        .teams { display: grid; grid-template-columns: 1fr 1fr; width: 100%; box-sizing: border-box;}
-        .home, .away { display: flex; align-items: center; width: 100%; box-sizing: border-box; position: relative; }
-        .logo img { height: 1.5em; max-width: 3em; object-fit: contain; display: block; }
-        .teamscore { display: flex; align-items: center; flex-grow: 1; overflow: hidden; white-space: nowrap; }
-        .name { flex-grow: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.5em; z-index: 2;}
-        .score { font-weight: bold; padding: 0 0.5em; z-index: 2; }
-        
-        .header .time { display: none; } /* Hidden as requested */
-
-
-        /* ==========================================================================
-           DESIGN 1: STANDARD (Polished Original) - Matches scoreboard.html
-           ========================================================================== */
-        [data-design="default"] .scoreboard {
-            font-family: 'Quantico', sans-serif;
-            font-weight: 900;
-            box-shadow: none;
-            background: transparent;
-        }
-        [data-design="default"] .header {
-            background-color: #000;
-            color: #fff;
-            font-size: 0.75em;
-            padding: 0;
-            font-weight: 500;
-            border: none;
-            justify-content: center;
-            position: relative;
-            min-height: 1.5em; /* Ensure height for absolute pause */
-        }
-        [data-design="default"] .period {
-            position: absolute; 
-            left: 0;
-            padding: 0.15em 0.5em;
-        } 
-        [data-design="default"] .teams { 
-            background: transparent;
-        }
-        [data-design="default"] .home {
-            background: linear-gradient(0deg, var(--home-secondary) 10%, var(--home-primary) 10%);
-            color: var(--home-text);
-            padding: 0;
-            border: none;
-        }
-        [data-design="default"] .away {
-            background: linear-gradient(0deg, var(--guest-secondary) 10%, var(--guest-primary) 10%);
-            color: var(--guest-text);
-            padding: 0;
-        }
-        [data-design="default"] .teamscore {
-            justify-content: space-between;
-            padding: 0 0.5em;
-        }
-        [data-design="default"] .logo img { 
-            height: 1.25em;
-            padding: 0 0.2em;
-            filter: none;
-        }
-
-
-        /* ==========================================================================
-           DESIGN 2: CLEAN MINIMAL (modern, light/dark)
-           ========================================================================== */
-        [data-design="modern"] .scoreboard {
-            font-family: 'Roboto', sans-serif;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            overflow: hidden;
-            color: #333;
-            min-width: 30em;
-        }
-        [data-design="modern"] .header {
-            background: #f5f5f7;
-            color: #888;
-            font-size: 0.6em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 8px 0;
-            text-transform: uppercase;
-        }
-        [data-design="modern"] .teams { border-top: 1px solid #eaeaea; }
-        [data-design="modern"] .home, [data-design="modern"] .away {
-            padding: 10px;
-            position: relative;
-            background: #fff;
-        }
-        [data-design="modern"] .home { 
-            /* Tint with secondary, border primary */
-            background: linear-gradient(to right, color-mix(in srgb, var(--home-secondary), white 90%), white 100%);
-            border-left: 6px solid var(--home-primary); 
-            color: #000;
-        }
-        [data-design="modern"] .away { 
-            background: linear-gradient(to left, color-mix(in srgb, var(--guest-secondary), white 90%), white 100%);
-            border-right: 6px solid var(--guest-primary); 
-            color: #000;
-        }
-        
-        [data-design="modern"] .name { font-weight: 500; font-size: 1.1em;}
-        [data-design="modern"] .score { 
-            font-size: 1.8em; 
-            font-weight: 900; 
-            font-variant-numeric: tabular-nums;
-        }
-        [data-design="modern"] .home .score { color: var(--home-primary); }
-        [data-design="modern"] .away .score { color: var(--guest-primary); }
-        [data-design="modern"] .logo img { height: 2em; }
-
-
-        /* ==========================================================================
-           DESIGN 3: BROADCAST (TV Lower Third Style)
-           ========================================================================== */
-        [data-design="broadcast"] .scoreboard {
-            font-family: 'Montserrat', sans-serif;
-            min-width: 50em;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
-        }
-        [data-design="broadcast"] .header {
-            position: absolute;
-            top: -1.8em;
-            left: 50%;
-            transform: translateX(-50%);
-            width: auto;
-            background: #0b0b0b;
-            color: #fff;
-            padding: 0.4em 2em;
-            font-size: 0.55em;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
-        }
-        [data-design="broadcast"] .teams {
-            background: #1a1a1a;
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid #333;
-        }
-        /* Gradient from Primary to Secondary */
-        [data-design="broadcast"] .home {
-            background: linear-gradient(90deg, var(--home-primary) 0%, var(--home-secondary) 50%, #222 80%);
-            color: var(--home-text);
-            padding: 0.5em 1em;
-            justify-content: flex-start;
-        }
-        [data-design="broadcast"] .away {
-            background: linear-gradient(-90deg, var(--guest-primary) 0%, var(--guest-secondary) 50%, #222 80%);
-            color: var(--guest-text);
-            padding: 0.5em 1em;
-            flex-direction: row-reverse;
-        }
-        [data-design="broadcast"] .teamscore { justify-content: space-between; flex-direction: row-reverse; }
-        [data-design="broadcast"] .away .teamscore { flex-direction: row; }
-        
-        [data-design="broadcast"] .score {
-            font-size: 1.8em;
-            font-weight: 900;
-            background: rgba(0,0,0,0.4);
-            color: #fff;
-            padding: 0.1em 0.5em;
-            border-radius: 2px;
-            min-width: 1.2em;
-            text-align: center;
-            border-bottom: 3px solid;
-            /* Use secondary for the accent underline */
-        }
-        [data-design="broadcast"] .home .score { border-color: var(--home-secondary); }
-        [data-design="broadcast"] .away .score { border-color: var(--guest-secondary); }
-
-        [data-design="broadcast"] .name { padding: 0 1em; text-transform: uppercase; font-weight: 700; letter-spacing: -0.5px;}
-
-
-        /* ==========================================================================
-           DESIGN 4: RETRO LED (Pixel Art)
-           ========================================================================== */
-        [data-design="retro"] .scoreboard {
-            font-family: 'Press Start 2P', cursive;
-            background: #000;
-            padding: 4px;
-            border: 4px solid #444;
-            border-radius: 4px;
-            box-shadow: 0 0 0 1px #000;
-        }
-        [data-design="retro"] .header {
-            background: #000;
-            color: #fc0;
-            font-size: 0.5em;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-        [data-design="retro"] .teams { gap: 4px; }
-        [data-design="retro"] .home, [data-design="retro"] .away {
-            padding: 0.5em;
-            position: relative;
-        }
-        [data-design="retro"] .home { 
-            background: var(--home-primary); 
-            color: var(--home-text);
-            /* Secondary border */
-            border: 4px solid var(--home-secondary);
-        }
-        [data-design="retro"] .away { 
-            background: var(--guest-primary); 
-            color: var(--guest-text);
-            border: 4px solid var(--guest-secondary);
-        }
-
-        /* Scanline effect */
-        [data-design="retro"] .home::after, [data-design="retro"] .away::after {
-            content: " ";
-            position: absolute;
-            top:0; left:0; width:100%; height:100%;
-            background: repeating-linear-gradient(transparent 0px, transparent 2px, rgba(0,0,0,0.3) 3px);
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        [data-design="retro"] .score { 
-            background: rgba(0,0,0,0.5);
-            padding: 2px 5px;
-            font-size: 1.2em; 
-        }
-        [data-design="retro"] .logo img { image-rendering: pixelated; }
-
-
-        /* ==========================================================================
-           DESIGN 5: NEON FLUX (Cyber/Night)
-           ========================================================================== */
-        [data-design="neon"] .scoreboard {
-            font-family: 'Quantico', sans-serif;
-            background: rgba(5, 5, 10, 0.95);
-            border: 1px solid #333;
-            backdrop-filter: blur(10px);
-            /* Shadows use secondary color for glow depth */
-            box-shadow: 
-                0 0 30px -10px var(--home-secondary),
-                0 0 30px -10px var(--guest-secondary);
-            border-radius: 20px;
-            overflow: hidden;
-            color: #fff;
-        }
-        [data-design="neon"] .header {
-            background: rgba(0,0,0,0.8);
-            font-size: 0.6em;
-            letter-spacing: 2px;
-            color: #fff;
-            padding: 5px 0;
-            border-bottom: 1px solid #333;
-        }
-        [data-design="neon"] .home {
-            background: linear-gradient(90deg, color-mix(in srgb, var(--home-primary), transparent 80%) 0%, transparent 100%);
-            border-bottom: 3px solid var(--home-primary);
-            padding: 0.5em;
-            /* Text shadow uses secondary */
-            text-shadow: 0 0 10px var(--home-secondary);
-        }
-        [data-design="neon"] .away {
-            background: linear-gradient(-90deg, color-mix(in srgb, var(--guest-primary), transparent 80%) 0%, transparent 100%);
-            border-bottom: 3px solid var(--guest-primary);
-            padding: 0.5em;
-            flex-direction: row-reverse;
-            text-shadow: 0 0 10px var(--guest-secondary);
-        }
-        [data-design="neon"] .teamscore { flex-direction: row-reverse; }
-        [data-design="neon"] .away .teamscore { flex-direction: row; }
-
-        [data-design="neon"] .score {
-            font-size: 2em;
-            text-shadow: 0 0 15px currentColor;
-            font-weight: 500;
-        }
-        
-
-        /* ==========================================================================
-           DESIGN 6: SPORT CARD (Material Design 3 style)
-           ========================================================================== */
-        [data-design="material"] .scoreboard {
-            background: white;
-            border-radius: 24px;
-            padding: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-family: 'Google Sans', 'Roboto', sans-serif;
-            overflow: hidden;
-            min-width: 35em;
-        }
-        [data-design="material"] .header {
-            background: #f1f3f4;
-            color: #444;
-            font-size: 0.65em;
-            font-weight: 600;
-            padding: 6px;
-        }
-        [data-design="material"] .teams { gap: 1px; background: #e0e0e0; }
-        [data-design="material"] .home, [data-design="material"] .away {
-            background: white;
-            padding: 12px 20px;
-            color:black;
-            position: relative;
-        }
-        /* Tint with secondary */
-        [data-design="material"] .home { background: color-mix(in srgb, var(--home-secondary), white 90%); }
-        [data-design="material"] .away { background: color-mix(in srgb, var(--guest-secondary), white 90%); }
-        
-        [data-design="material"] .logo {
-            background: white;
-            border-radius: 50%;
-            width: 2.5em; height: 2.5em;
-            display: flex; justify-content: center; align-items: center;
-            /* Shadow using primary */
-            box-shadow: 0 2px 5px color-mix(in srgb, var(--home-primary), transparent 80%);
-        } 
-        [data-design="material"] .away .logo {
-            box-shadow: 0 2px 5px color-mix(in srgb, var(--guest-primary), transparent 80%);
-        }
-
-        [data-design="material"] .score {
-            font-size: 1.6em;
-            font-weight: 500;
-            padding: 2px 12px;
-            border-radius: 12px;
-            margin: 0 10px;
-        }
-        
-        [data-design="material"] .home .score {
-            background: var(--home-primary);
-            color: var(--home-text);
-        }
-        [data-design="material"] .away .score {
-            background: var(--guest-primary);
-            color: var(--guest-text);
-        }
-        [data-design="material"] .name { font-size: 1.1em; font-weight: 500;}
-
-
-        /* ==========================================================================
-           DESIGN 7: BOLD COMPACT (Impact style)
-           ========================================================================== */
-        [data-design="bold"] .scoreboard {
-            font-family: 'Oswald', sans-serif;
-            text-transform: uppercase;
-            background: #202020;
-            color: #fff;
-            border: 4px solid #fff;
-            box-shadow: 5px 5px 0 #000;
-        }
-        [data-design="bold"] .header {
-            background: #fff;
-            color: #000;
-            font-weight: 700;
-            font-size: 0.6em;
-            padding: 2px 0;
-        }
-        [data-design="bold"] .home {
-            background: linear-gradient(0deg, var(--home-secondary) 10%, var(--home-primary) 10%);
-            color: var(--home-text);
-            padding: 0.3em;
-            clip-path: polygon(0 0, 95% 0, 100% 100%, 0% 100%);
-        }
-        [data-design="bold"] .away {
-            background: linear-gradient(0deg, var(--guest-secondary) 10%, var(--guest-primary) 10%);
-            color: var(--guest-text);
-            padding: 0.3em;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%);
-            margin-left: -10px;
-        }
-        [data-design="bold"] .score { font-size: 2.5em; line-height: 0.9; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);}
-        [data-design="bold"] .name { font-size: 1.2em; letter-spacing: 1px; }
-
-
-        /* ==========================================================================
-           DESIGN 8: GLASS FLOAT (Apple style)
-           ========================================================================== */
-        [data-design="glass"] .scoreboard {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
-            padding: 10px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            color: #000;
-        }
-        [data-design="glass"] .header {
-            background: transparent;
-            font-size: 0.6em;
-            color: #444;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        [data-design="glass"] .teams { gap: 10px; }
-        [data-design="glass"] .home, [data-design="glass"] .away {
-            /* Tint glass with primary */
-            background: color-mix(in srgb, var(--home-primary), rgba(255,255,255,0.6) 80%);
-            border-radius: 10px;
-            padding: 8px;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            /* Border uses Secondary */
-            border: 2px solid var(--home-secondary);
-        }
-        [data-design="glass"] .away {
-            background: color-mix(in srgb, var(--guest-primary), rgba(255,255,255,0.6) 80%);
-            border: 2px solid var(--guest-secondary);
-        }
-        
-        [data-design="glass"] .logo { margin-bottom: 5px; }
-        [data-design="glass"] .teamscore { flex-direction: column; width: 100%;}
-        [data-design="glass"] .score { font-size: 2em; font-weight: 700; line-height: 1; color: #000; }
-        [data-design="glass"] .name { font-size: 0.8em; opacity: 0.8; color: #000; }
-        
-        /* Bottom bar removed in favor of border */
-
-
-        /* ==========================================================================
-           DESIGN 9: CYBERPUNK (Futuristic)
-           ========================================================================== */
-        [data-design="cyberpunk"] .scoreboard {
-            font-family: 'Teko', sans-serif;
-            background: #000;
-            color: #fff;
-            border: 2px solid #333;
-            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-            padding: 4px;
-            text-transform: uppercase;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        [data-design="cyberpunk"] .header {
-            background: #111;
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.8em;
-            letter-spacing: 2px;
-            border-bottom: 1px solid #333;
-        }
-        [data-design="cyberpunk"] .teams {
-            background: #050505;
-            grid-gap: 4px;
-        }
-        [data-design="cyberpunk"] .home, [data-design="cyberpunk"] .away {
-            padding: 5px 15px;
-            /* Glitchy stripe background */
-            background: repeating-linear-gradient(45deg, #080808, #080808 10px, #101010 10px, #101010 20px);
-        }
-        [data-design="cyberpunk"] .home { 
-            border-right: 4px solid var(--home-primary); 
-            color: var(--home-primary); 
-            /* Text shadow uses secondary */
-            text-shadow: 0 0 5px var(--home-secondary);
-        }
-        [data-design="cyberpunk"] .away { 
-            border-left: 4px solid var(--guest-primary); 
-            color: var(--guest-primary);
-            text-shadow: 0 0 5px var(--guest-secondary);
-            flex-direction: row-reverse; 
-        }
-        
-        [data-design="cyberpunk"] .score { 
-            font-size: 2.5em; 
-            color: #fff; 
-            /* Background uses secondary */
-            background: var(--home-secondary);
-            padding: 0 10px;
-            clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
-        }
-        [data-design="cyberpunk"] .away .score { 
-            background: var(--guest-secondary);
-        }
-        [data-design="cyberpunk"] .name { font-size: 1.4em; }
-
-
-        /* ==========================================================================
-           DESIGN 10: ISLANDS (Floating Elements)
-           ========================================================================== */
-        [data-design="islands"] .scoreboard {
-            font-family: 'Roboto', sans-serif;
-            overflow: visible;
-        }
-        [data-design="islands"] .header {
-            background: white;
-            color: #555;
-            width: fit-content;
-            margin: 0 auto;
-            padding: 4px 15px;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            font-size: 0.7em;
-            font-weight: 700;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 10;
-        }
-        [data-design="islands"] .teams {
-            display: flex; gap: 40px; justify-content: center;
-        }
-        [data-design="islands"] .home, [data-design="islands"] .away {
-            background: white;
-            border-radius: 16px;
-            padding: 10px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: auto;
-            min-width: 12em;
-            flex-direction: column;
-            border: 1px solid #eee;
-            /* Top border Primary */
-            border-top: 8px solid var(--home-primary);
-            /* Bottom border Secondary */
-            border-bottom: 4px solid var(--home-secondary);
-        }
-        [data-design="islands"] .away { 
-            border-top: 8px solid var(--guest-primary); 
-            border-bottom: 4px solid var(--guest-secondary); 
-        }
-        
-        [data-design="islands"] .logo img { height: 2.5em; margin-bottom: 5px; }
-        [data-design="islands"] .teamscore { flex-direction: column; }
-        [data-design="islands"] .score {
-            font-size: 2.2em;
-            font-weight: 900;
-            line-height: 1;
-        }
-        /* Color the score text too */
-        [data-design="islands"] .home .score { color: var(--home-primary); }
-        [data-design="islands"] .away .score { color: var(--guest-primary); }
-        
-        [data-design="islands"] .name { font-size: 0.9em; color: #777; margin-top: 5px; font-weight: 500;}
-
+        /* Initial loader or fallback */
+        .loading { font-family: monospace; color: #888; }
     </style>
 </head>
-<body data-design="default">
+<body>
 
-<div class="scoreboard">
-    <div class="header">
-        <div class="period" id="period">1. Drittel</div>
-        <div class="time">00:00</div>
-    </div>
-    <div class="body">
-        <div class="teams">
-            <!-- HOME -->
-            <div class="home">
-                <div class="logo">
-                    <img class="logo_home" id="img_home" src="" alt="" onerror="this.style.display='none'">
-                </div>
-                <div class="teamscore">
-                    <div class="name name_home" id="name_home"></div>
-                    <div class="score" id="score_home">0</div>
-                </div>
-            </div>
-            
-            <!-- AWAY -->
-            <div class="away">
-                <div class="teamscore">
-                    <div class="score" id="score_away">0</div>
-                    <div class="name name_away" id="name_away"></div>
-                </div>
-                <div class="logo">
-                    <img class="logo_away" id="img_away" src="" alt="" onerror="this.style.display='none'">
-                </div>
-            </div>
-        </div>
-    </div>
+<div id="board-container">
+    <div class="loading">Loading design...</div>
 </div>
 
 <script type="text/javascript">
@@ -628,6 +57,42 @@
     // Design Param
     const design = getParam('design') || 'default';
     document.body.setAttribute('data-design', design);
+
+    // Load Design: Custom, or Fetch from file
+    async function loadDesign() {
+        const container = document.getElementById('board-container');
+        
+        if (design === 'custom') {
+            const customCode = localStorage.getItem('scoreboardCustomCode');
+            if (customCode) {
+                container.innerHTML = customCode;
+            } else {
+                container.innerHTML = '<div style="color:red">No custom code found.</div>';
+            }
+        } else {
+            try {
+                // Fetch the design HTML file
+                const response = await fetch(`designs/${design}.html`);
+                if (!response.ok) throw new Error(`Design ${design} not found`);
+                const html = await response.text();
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div style="color:red">Error loading design: ${design}</div>`;
+            }
+        }
+
+        // Execute scripts if any (simple eval)
+        const scripts = container.getElementsByTagName("script");
+        for(let i=0; i<scripts.length; i++) {
+            try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
+        }
+
+        // Trigger data update immediately after loading structure
+        fetchGameData();
+    }
+    
+    loadDesign();
 
     // Configuration Object
     const config = {
@@ -724,7 +189,7 @@
     }
 
     // Initial load and Interval
-    fetchGameData();
+    // fetchGameData() is called in loadDesign() after the DOM is ready
     setInterval(fetchGameData, FETCH_INTERVAL);
 
 </script>

@@ -1,0 +1,102 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Teko:wght@500;700&display=swap');
+
+    .scoreboard {
+        font-family: 'Teko', sans-serif;
+        font-size: min(2.5vw, 2.5vh);
+        background: #000;
+        color: #fff;
+        border: 2px solid #333;
+        clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        padding: 4px;
+        text-transform: uppercase;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        min-width: 40em;
+    }
+
+    .header {
+        background: #111;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8em;
+        letter-spacing: 2px;
+        border-bottom: 1px solid #333;
+        display: flex; justify-content: center; width: 100%;
+    }
+
+    .teams {
+        background: #050505;
+        grid-gap: 4px;
+        display: grid; grid-template-columns: 1fr 1fr; width: 100%;
+    }
+
+    .home, .away {
+        padding: 5px 15px;
+        /* Glitchy stripe background */
+        background: repeating-linear-gradient(45deg, #080808, #080808 10px, #101010 10px, #101010 20px);
+        display: flex; align-items: center; width: 100%; box-sizing: border-box;
+    }
+
+    .home { 
+        border-right: 4px solid var(--home-primary); 
+        color: var(--home-primary); 
+        /* Text shadow uses secondary */
+        text-shadow: 0 0 5px var(--home-secondary);
+    }
+    .away { 
+        border-left: 4px solid var(--guest-primary); 
+        color: var(--guest-primary);
+        text-shadow: 0 0 5px var(--guest-secondary);
+        flex-direction: row-reverse; 
+    }
+    
+    .score { 
+        font-size: 2.5em; 
+        color: #fff; 
+        text-shadow: none;
+        padding: 0 10px;
+        clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+    }
+    .home .score { background: var(--home-secondary); }
+    .away .score { background: var(--guest-secondary); }
+    
+    .name { font-size: 1.4em; flex-grow: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.5em;}
+    
+    .teamscore { display: flex; align-items: center; flex-grow: 1; overflow: hidden; white-space: nowrap; }
+    .home .teamscore { flex-direction: row; }
+    .away .teamscore { flex-direction: row-reverse; }
+
+    .logo img { height: 1.5em; max-width: 3em; object-fit: contain; display: block; }
+</style>
+
+<div class="scoreboard">
+    <div class="header">
+        <div class="period" id="period">1. Drittel</div>
+    </div>
+    <div class="teams">
+        <!-- HOME -->
+        <div class="home">
+            <div class="logo">
+                <img id="img_home" onerror="this.style.display='none'">
+            </div>
+            <div class="teamscore">
+                <div class="name" id="name_home"></div>
+                <div class="score" id="score_home">0</div>
+            </div>
+        </div>
+        
+        <!-- AWAY -->
+        <div class="away">
+            <div class="teamscore">
+                <div class="score" id="score_away">0</div>
+                <div class="name" id="name_away"></div>
+            </div>
+            <div class="logo">
+                <img id="img_away" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</div>

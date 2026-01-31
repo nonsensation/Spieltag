@@ -117,71 +117,162 @@
 <div class="container">
     <!-- PREVIEW AREA -->
     <div class="preview">
-        <h2>Live Preview</h2>
+        <h2>Live Vorschau</h2>
         <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
     </div>
 
     <!-- SIDEBAR CONTROLS -->
     <div class="controls">
-        <h3>Configuration</h3>
+        <h3>Konfiguration</h3>
         
         <div class="form-group">
-            <label>Design Style</label>
+            <label>Design Stil</label>
             <select id="designStyle" onchange="generate()">
-                <option value="default">Default (Original)</option>
+                <option value="default">Standard (Original)</option>
                 <option value="retro">Retro Pixel</option>
-                <option value="modern">Modern Clean</option>
+                <option value="modern">Modern Schlicht</option>
                 <option value="neon">Neon</option>
-                <option value="broadcast">Broadcast Strip</option>
+                <option value="broadcast">TV Übertragung</option>
                 <option value="glass">Glassmorphism</option>
-                <option value="bold">Bold Typography</option>
-                <option value="material">Material Card</option>
+                <option value="bold">Fett Gedruckt</option>
+                <option value="material">Material Karte</option>
                 <option value="cyberpunk">Cyberpunk</option>
-                <option value="islands">Floating Islands</option>
+                <option value="islands">Schwebende Inseln</option>
+                <option value="custom">Eigener Code</option>
             </select>
         </div>
-        
-        <div class="form-group">
-            <label>Game ID</label>
-            <div style="display:flex; gap:5px;">
-                <input type="number" id="gameId" value="42941" placeholder="e.g. 42941" oninput="fetchGameDetails()">
-                <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 15px;">Load</button>
-            </div>
-            <div class="loader" id="loader">Fetching names...</div>
+
+        <div id="customCodeTrigger" style="display:none; margin-bottom: 20px;">
+             <button type="button" onclick="openEditor()" style="background:#28a745; width:100%;">Code Editor öffnen</button>
+             <div style="font-size:0.8em; color:#666; margin-top:5px; font-style:italic;">Klicken zum Bearbeiten des eigenen Designs.</div>
         </div>
 
-        <div class="section-title">Home Team</div>
+        <!-- Full Screen Editor Modal -->
+        <div id="editorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; flex-direction:column;">
+            <!-- Modal Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#f8f9fa; border-bottom:1px solid #ddd;">
+                <h3 style="margin:0; border:none; padding:0;">Editor für eigenes Design</h3>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="secondary" onclick="resetCustomCode()" style="width:auto; padding:8px 15px; margin:0; background:#dc3545;">Zurücksetzen</button>
+                    <button type="button" onclick="closeEditor()" style="width:auto; padding:8px 15px; margin:0;">Speichern & Schließen</button>
+                </div>
+            </div>
+            
+            <!-- Modal Body -->
+            <div style="display:flex; flex:1; overflow:hidden;">
+                <!-- Code Area -->
+                <div style="flex:1; display:flex; flex-direction:column; padding:10px; border-right:1px solid #ddd;">
+                    <label style="margin-bottom:5px;">HTML & CSS</label>
+                    <textarea id="customCode" style="flex:1; width:100%; border:1px solid #ccc; font-family:monospace; font-size:14px; padding:10px; white-space:pre; resize:none; box-sizing:border-box;" placeholder="Füge hier deinen HTML Scoreboard Code ein..." oninput="generate(true)"></textarea>
+                </div>
+                
+                <!-- Info Sidebar -->
+                <div style="width:300px; padding:15px; overflow-y:auto; background:#fafafa;">
+                    <h4 style="margin-top:0;">Verfügbare Variablen</h4>
+                    <p style="font-size:0.9em; color:#666;">Benutze diese IDs für die Datenbindung:</p>
+                    <ul style="font-size:0.85em; padding-left:20px; color:#444;">
+                        <li><code>period</code>: Aktueller Abschnitt</li>
+                        <li><code>time</code>: Spielzeit (meist unsichtbar)</li>
+                        <li><code>img_home</code>: Heim Logo (img src)</li>
+                        <li><code>name_home</code>: Heim Name</li>
+                        <li><code>score_home</code>: Heim Tore</li>
+                        <li><code>img_away</code>: Gast Logo (img src)</li>
+                        <li><code>name_away</code>: Gast Name</li>
+                        <li><code>score_away</code>: Gast Tore</li>
+                    </ul>
+
+                    <h4 style="margin-top:15px;">CSS Variablen</h4>
+                    <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
+                    <ul style="font-size:0.85em; padding-left:20px; color:#444;">
+                        <li><code>--home-primary</code></li>
+                        <li><code>--home-secondary</code></li>
+                        <li><code>--home-text</code></li>
+                        <li><code>--guest-primary</code></li>
+                        <li><code>--guest-secondary</code></li>
+                        <li><code>--guest-text</code></li>
+                    </ul>
+                    
+                    <div style="margin-top:20px; padding:10px; background:#e9ecef; border-radius:4px; font-size:0.85em;">
+                        <strong>Tipp:</strong> Nutze einen Container mit der Klasse <code>scoreboard</code>.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Spiel ID</label>
+            <div style="display:flex; gap:5px;">
+                <input type="number" id="gameId" value="42941" placeholder="z.B. 42941" oninput="fetchGameDetails()">
+                <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 15px;">Laden</button>
+            </div>
+            <div class="loader" id="loader">Lade Namen...</div>
+        </div>
+
+        <div class="section-title">Heimteam</div>
         <div class="form-group">
             <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                 <img id="homeLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
-                <input type="text" id="hn" placeholder="Name Override" oninput="generate()">
+                <input type="text" id="hn" placeholder="Name überschreiben" oninput="generate()">
             </div>
             <div class="color-row">
-                <input type="color" id="hp" value="#000000" title="Primary" oninput="generate()">
-                <input type="color" id="hs" value="#1e713a" title="Secondary" oninput="generate()">
+                <input type="color" id="hp" value="#000000" title="Primär" oninput="generate()">
+                <input type="color" id="hs" value="#1e713a" title="Sekundär" oninput="generate()">
                 <input type="color" id="ht" value="#ffffff" title="Text" oninput="generate()">
             </div>
         </div>
 
-        <div class="section-title">Guest Team</div>
+        <div class="section-title">Gastteam</div>
         <div class="form-group">
             <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                 <img id="guestLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
-                <input type="text" id="gn" placeholder="Name Override" oninput="generate()">
+                <input type="text" id="gn" placeholder="Name überschreiben" oninput="generate()">
             </div>
             <div class="color-row">
-                <input type="color" id="gp" value="#ff0000" title="Primary" oninput="generate()">
-                <input type="color" id="gs" value="#ffffff" title="Secondary" oninput="generate()">
+                <input type="color" id="gp" value="#ff0000" title="Primär" oninput="generate()">
+                <input type="color" id="gs" value="#ffffff" title="Sekundär" oninput="generate()">
                 <input type="color" id="gt" value="#000000" title="Text" oninput="generate()">
             </div>
         </div>
 
         <div class="url-output" id="urlOutput" style="display:none;">
-            <label>Generated URL:</label>
+            <label>Generierte URL:</label>
             <div class="url-text" id="finalUrl"></div>
-            <button id="copyBtn" onclick="copyAndOpen()">Copy & Open Link</button>
+            <button id="copyBtn" onclick="copyAndOpen()">Kopieren & Öffnen</button>
             
             <div id="qrcode"></div>
+        </div>
+        
+        <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center;">
+            <a href="#" onclick="openAboutModal()" style="color: #666; text-decoration: none; font-size: 0.85em;">Über & Datenschutz</a>
+        </footer>
+    </div>
+</div>
+
+<!-- About Modal -->
+<div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:8px; max-width:400px; max-height:80vh; overflow-y:auto; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <span onclick="document.getElementById('aboutModal').style.display='none'" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.5em; color:#999;">&times;</span>
+        
+        <h3 style="margin-top:0;">Über dieses Tool</h3>
+        <p style="font-size:0.9em; line-height:1.5;">
+            Dieser Scoreboard Generator ist ein Client-seitiges Tool. Es werden <strong>keine persönlichen Daten</strong> gesammelt oder an eigene Server gesendet.
+        </p>
+        
+        <h4 style="margin-bottom:5px; font-size:1em;">Technologie</h4>
+        <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
+            <li>Einstellungen werden nur in Ihrem Browser gespeichert (<strong>LocalStorage</strong>).</li>
+            <li>Spieldaten werden direkt von der <strong>API von saisonmanager.de</strong> geladen.</li>
+            <li>Externe Ressourcen: Nur <strong>Google Fonts</strong> und <strong>Google APIs</strong> für Schriftarten.</li>
+        </ul>
+
+        <h4 style="margin-bottom:5px; font-size:1em;">Credits</h4>
+        <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
+            <li>QR Code Generator: <strong>qrcodejs</strong></li>
+            <li>Icons & Fonts: <strong>Google Fonts</strong></li>
+        </ul>
+        
+        <div style="margin-top:20px; font-size:0.8em; text-align:center; color:#888;">
+            <a href="https://github.com/nonsensation/Spieltag" target="_blank" style="color:#007bff; text-decoration:none;">GitHub Repository</a>
         </div>
     </div>
 </div>
@@ -189,21 +280,25 @@
 <script>
     const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
 
+    function openAboutModal() {
+        document.getElementById('aboutModal').style.display = 'flex';
+    }
+
     async function fetchGameDetails() {
         const id = document.getElementById('gameId').value;
         const loader = document.getElementById('loader');
         loader.style.display = 'block';
-        loader.innerText = 'Fetching...';
+        loader.innerText = 'Laden...';
 
         try {
             const res = await fetch(`https://saisonmanager.de/api/v2/games/${id}.json`);
-            if(!res.ok) throw new Error('Game not found');
+            if(!res.ok) throw new Error('Spiel nicht gefunden');
             const data = await res.json();
             
             if(data.home_team_name) document.getElementById('hn').placeholder = `${data.home_team_name}`;
             if(data.guest_team_name) document.getElementById('gn').placeholder = `${data.guest_team_name}`;
             
-            loader.innerText = `Matched: ${data.home_team_name} vs ${data.guest_team_name}`;
+            loader.innerText = `Gefunden: ${data.home_team_name} vs ${data.guest_team_name}`;
             loader.style.color = 'green';
             
             generate();
@@ -231,7 +326,149 @@
         }
     }
 
+    const DEFAULT_CODE = `<style>
+    @import url('https://fonts.googleapis.com/css2?family=Quantico:wght@400;700;900&display=swap');
+    
+    .scoreboard {
+        font-family: 'Quantico', sans-serif;
+        font-weight: 900;
+        font-size: min(2.5vw, 2.5vh); 
+        width: fit-content;
+        min-width: 40em;
+        display: flex;
+        flex-direction: column;
+        background: transparent;
+    }
+    
+    .header {
+        background-color: #000;
+        color: #fff;
+        font-size: 0.75em;
+        padding: 0;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        min-height: 1.5em; 
+    }
+    
+    .period {
+        position: absolute; 
+        left: 0;
+        padding: 0.15em 0.5em;
+    } 
+    
+    .teams {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+    
+    .home, .away {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 0;
+        position: relative;
+    }
+    
+    .home {
+        background: linear-gradient(0deg, var(--home-secondary) 10%, var(--home-primary) 10%);
+        color: var(--home-text);
+    }
+    
+    .away {
+        background: linear-gradient(0deg, var(--guest-secondary) 10%, var(--guest-primary) 10%);
+        color: var(--guest-text);
+    }
+    
+    .teamscore {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        justify-content: space-between;
+        padding: 0 0.5em;
+        overflow: hidden;
+    }
+    
+    .name {
+        flex-grow: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .score {
+        font-weight: bold;
+        padding: 0 0.5em;
+    }
+    
+    img {
+        height: 1.25em;
+        padding: 0 0.2em;
+        max-width: 3em; 
+        object-fit: contain;
+    }
+</style>
+
+<div class="scoreboard">
+    <div class="header">
+        <div class="period" id="period">1. Drittel</div>
+    </div>
+    <div class="teams">
+        <!-- HOME -->
+        <div class="home">
+            <div class="logo">
+                <img id="img_home" onerror="this.style.display='none'">
+            </div>
+            <div class="teamscore">
+                <div class="name" id="name_home">HOME</div>
+                <div class="score" id="score_home">0</div>
+            </div>
+        </div>
+        
+        <!-- AWAY -->
+        <div class="away">
+            <div class="teamscore">
+                <div class="score" id="score_away">0</div>
+                <div class="name" id="name_away">AWAY</div>
+            </div>
+            <div class="logo">
+                <img id="img_away" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</div>`;
+
+    function openEditor() {
+        document.getElementById('editorModal').style.display = 'flex';
+        // Ensure the editor has content
+        if(!document.getElementById('customCode').value) {
+            const stored = localStorage.getItem('scoreboardCustomCode');
+            document.getElementById('customCode').value = stored || DEFAULT_CODE;
+        }
+    }
+
+    function closeEditor() {
+        document.getElementById('editorModal').style.display = 'none';
+        generate(); // Final generate on close
+    }
+
+    function resetCustomCode() {
+        document.getElementById('customCode').value = DEFAULT_CODE;
+        generate();
+    }
+
+    let debounceTimer;
     function generate() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            performGenerate();
+        }, 500);
+    }
+
+    function performGenerate() {
         saveSettings();
 
         const params = new URLSearchParams();
@@ -240,6 +477,16 @@
 
         const design = document.getElementById('designStyle').value;
         if(design && design !== 'default') params.append('design', design);
+
+        const customTrigger = document.getElementById('customCodeTrigger');
+        if (design === 'custom') {
+            customTrigger.style.display = 'block';
+            const code = document.getElementById('customCode').value || DEFAULT_CODE;
+            if(!document.getElementById('customCode').value) document.getElementById('customCode').value = code;
+            localStorage.setItem('scoreboardCustomCode', code);
+        } else {
+            customTrigger.style.display = 'none';
+        }
 
         const hn = document.getElementById('hn').value;
         const hp = document.getElementById('hp').value;
@@ -266,16 +513,31 @@
         const finalString = `${BASE_URL}?${params.toString()}`;
         
         // Update Iframe
-        const currentSrc = document.getElementById('previewFrame').src;
-        if (!currentSrc.includes(params.toString())) {
-             document.getElementById('previewFrame').src = `boards.html?${params.toString()}`;
+        const iframe = document.getElementById('previewFrame');
+        const newSrc = `boards.html?${params.toString()}`;
+        
+        if (design === 'custom') {
+            // Force reload for custom design to pick up localStorage changes
+            iframe.src = newSrc;
+            // Force reload even if src string is identical because content (localStorage) changed
+            // usage of newSrc directly might not trigger reload if identical
+            // We append a timestamp or just reload contentWindow
+            if(iframe.contentWindow && iframe.contentWindow.location.href.includes(newSrc)) {
+                iframe.contentWindow.location.reload();
+            } else {
+                iframe.src = newSrc;
+            }
+        } else {
+            if (!iframe.src.includes(params.toString())) {
+                 iframe.src = newSrc;
+            }
         }
         
         document.getElementById('urlOutput').style.display = 'block';
         document.getElementById('finalUrl').innerText = finalString;
         
         const btn = document.getElementById('copyBtn');
-        if(btn.innerText === "Copied!") btn.innerText = "Copy & Open Link";
+        if(btn.innerText === "Kopiert!") btn.innerText = "Kopieren & Öffnen";
 
         // Update QR
         const qrContainer = document.getElementById('qrcode');
@@ -296,7 +558,7 @@
         navigator.clipboard.writeText(urlText).then(() => {
             const btn = document.getElementById('copyBtn');
             const originalText = btn.innerText;
-            btn.innerText = "Copied!";
+            btn.innerText = "Kopiert!";
             
             // Open in new tab
             window.open(urlText, '_blank');
@@ -339,6 +601,13 @@
                 if (s.gs) document.getElementById('gs').value = s.gs;
                 if (s.gt) document.getElementById('gt').value = s.gt;
             } catch (e) { console.error(e); }
+        }
+        
+        const customCode = localStorage.getItem('scoreboardCustomCode');
+        if (customCode) {
+            document.getElementById('customCode').value = customCode;
+        } else {
+            document.getElementById('customCode').value = DEFAULT_CODE;
         }
     }
 

@@ -1,0 +1,104 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+    .scoreboard {
+        font-family: 'Quantico', sans-serif;
+        font-size: min(2.5vw, 2.5vh);
+        background: rgba(5, 5, 10, 0.95);
+        border: 1px solid #333;
+        backdrop-filter: blur(10px);
+        box-shadow: 
+            0 0 30px -10px var(--home-secondary),
+            0 0 30px -10px var(--guest-secondary);
+        border-radius: 20px;
+        overflow: hidden;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        min-width: 40em;
+    }
+
+    .header {
+        background: rgba(0,0,0,0.8);
+        font-size: 0.6em;
+        letter-spacing: 2px;
+        color: #fff;
+        padding: 5px 0;
+        border-bottom: 1px solid #333;
+        display: flex; justify-content: center; width: 100%;
+    }
+
+    .teams {
+        display: grid; grid-template-columns: 1fr 1fr; width: 100%;
+    }
+
+    .home, .away {
+        padding: 0.5em;
+        position: relative;
+        display: flex; align-items: center; width: 100%; box-sizing: border-box;
+    }
+
+    .home {
+        background: linear-gradient(90deg, color-mix(in srgb, var(--home-primary), transparent 80%) 0%, transparent 100%);
+        border-bottom: 3px solid var(--home-primary);
+        text-shadow: 0 0 10px var(--home-secondary);
+    }
+    .away {
+        background: linear-gradient(-90deg, color-mix(in srgb, var(--guest-primary), transparent 80%) 0%, transparent 100%);
+        border-bottom: 3px solid var(--guest-primary);
+        flex-direction: row-reverse;
+        text-shadow: 0 0 10px var(--guest-secondary);
+    }
+
+    /* Reverse inner layout for neon specific */
+    .home .teamscore { justify-content: flex-end; flex-direction: row-reverse; }
+    .away .teamscore { justify-content: flex-end; flex-direction: row; }
+    
+    .teamscore {
+        display: flex; align-items: center; flex-grow: 1; overflow: hidden; white-space: nowrap; 
+    }
+
+    .score {
+        font-size: 2em;
+        text-shadow: 0 0 15px currentColor;
+        font-weight: 500;
+        padding: 0 0.5em;
+    }
+    
+    .name {
+        flex-grow: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.5em;
+    }
+
+    .logo img { height: 1.5em; max-width: 3em; object-fit: contain; display: block; }
+
+</style>
+
+<div class="scoreboard">
+    <div class="header">
+        <div class="period" id="period">1. Drittel</div>
+    </div>
+    <div class="teams">
+        <!-- HOME -->
+        <div class="home">
+            <div class="logo">
+                <img id="img_home" onerror="this.style.display='none'">
+            </div>
+            <div class="teamscore">
+                <div class="name" id="name_home"></div>
+                <div class="score" id="score_home">0</div>
+            </div>
+        </div>
+        
+        <!-- AWAY -->
+        <div class="away">
+            <div class="teamscore">
+                <div class="score" id="score_away">0</div>
+                <div class="name" id="name_away"></div>
+            </div>
+            <div class="logo">
+                <img id="img_away" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</div>

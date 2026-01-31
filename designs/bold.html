@@ -1,0 +1,81 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
+    .scoreboard {
+        font-family: 'Oswald', sans-serif;
+        font-size: min(2.5vw, 2.5vh);
+        text-transform: uppercase;
+        background: #202020;
+        color: #fff;
+        border: 4px solid #fff;
+        box-shadow: 5px 5px 0 #000;
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        min-width: 40em;
+    }
+
+    .header {
+        background: #fff;
+        color: #000;
+        font-weight: 700;
+        font-size: 0.6em;
+        padding: 2px 0;
+        display: flex; justify-content: center; width: 100%;
+    }
+
+    .teams { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+
+    .home, .away {
+        padding: 0.3em;
+        position: relative;
+        display: flex; align-items: center; width: 100%; box-sizing: border-box;
+    }
+
+    .home {
+        background: linear-gradient(0deg, var(--home-secondary) 10%, var(--home-primary) 10%);
+        color: var(--home-text);
+        clip-path: polygon(0 0, 95% 0, 100% 100%, 0% 100%);
+    }
+    .away {
+        background: linear-gradient(0deg, var(--guest-secondary) 10%, var(--guest-primary) 10%);
+        color: var(--guest-text);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%);
+        margin-left: -10px;
+    }
+
+    .score { font-size: 2.5em; line-height: 0.9; text-shadow: 2px 2px 0 rgba(0,0,0,0.2); padding: 0 0.5em;}
+    .name { font-size: 1.2em; letter-spacing: 1px; flex-grow: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.5em;}
+    
+    .teamscore { display: flex; align-items: center; flex-grow: 1; overflow: hidden; white-space: nowrap; }
+    .logo img { height: 1.5em; max-width: 3em; object-fit: contain; display: block; }
+</style>
+
+<div class="scoreboard">
+    <div class="header">
+        <div class="period" id="period">1. Drittel</div>
+    </div>
+    <div class="teams">
+        <!-- HOME -->
+        <div class="home">
+            <div class="logo">
+                <img id="img_home" onerror="this.style.display='none'">
+            </div>
+            <div class="teamscore">
+                <div class="name" id="name_home"></div>
+                <div class="score" id="score_home">0</div>
+            </div>
+        </div>
+        
+        <!-- AWAY -->
+        <div class="away">
+            <div class="teamscore">
+                <div class="score" id="score_away">0</div>
+                <div class="name" id="name_away"></div>
+            </div>
+            <div class="logo">
+                <img id="img_away" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,161 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    
+    .scoreboard {
+        font-family: 'Quantico', sans-serif;
+        font-weight: 900;
+        /* Scale based on viewport but maintain readability */
+        font-size: min(2.5vw, 2.5vh); 
+        
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        min-width: 40em;
+        max-width: 95vw;
+        position: relative;
+        background: transparent;
+        box-shadow: none;
+    }
+    
+    .header {
+        display: flex;
+        width: 100%;
+        background-color: rgb(0, 0, 0);
+        color: rgb(255, 255, 255);
+        flex-direction: row;
+        justify-content: center;
+        font-weight: 500;
+        font-size: 0.75em;
+        position: relative;
+        min-height: 1.5em;
+        box-sizing: border-box;
+    }
+
+    .period {
+        padding: 0.15em 0.5em;
+        padding-top: 0;
+        left: 0;
+        position: absolute;
+    }
+
+    .time {
+        align-self: center;
+        color: transparent; 
+        display: none;
+    }
+
+    .teams {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        font-size: 100%;
+        background: transparent;
+        box-sizing: border-box;
+    }
+
+    .home {
+        flex-direction: row;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(0deg, var(--home-secondary) 10%, var(--home-primary) 10%);
+        color: var(--home-text);
+        width: 100%;
+        box-sizing: border-box;
+        border-right: 1px solid rgba(0,0,0,0.1); 
+        padding: 0;
+    }
+
+    .away {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        background: linear-gradient(0deg, var(--guest-secondary) 10%, var(--guest-primary) 10%);
+        color: var(--guest-text);
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+    }
+
+    .teamscore {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        padding: 0 0.5em;
+    }
+
+    .logo {
+        display: flex;
+        flex-shrink: 0; 
+    }
+
+    .logo img {
+        height: 1.25em;
+        width: auto;
+        max-width: 3em; 
+        object-fit: contain;
+        padding: 0 0.2em;
+        display: block;
+    }
+
+    .home > .logo {
+        padding-right: 0.2em;
+        padding-left: 0.2em;
+    }
+
+    .away > .logo {
+        padding-left: 0.2em;
+        padding-right: 0.2em;
+    }
+
+    .score {
+        padding: 0 0.5em;
+        font-weight: bold;
+    }
+
+    .name {
+        overflow: hidden;
+        text-overflow: ellipsis; 
+        flex-grow: 1; 
+        text-align: center;
+        white-space: nowrap;
+        font-size: 100%;
+        padding: 0 0.5em;
+    }
+</style>
+
+<div class="scoreboard">
+    <div class="header">
+        <div class="period" id="period">1. Drittel</div>
+        <div class="time">00:00</div>
+    </div>
+    <div class="body">
+        <div class="teams">
+            <!-- HOME -->
+            <div class="home">
+                <div class="logo">
+                    <img class="logo_home" id="img_home" src="" alt="" onerror="this.style.display='none'">
+                </div>
+                <div class="teamscore">
+                    <div class="name name_home" id="name_home"></div>
+                    <div class="score" id="score_home">0</div>
+                </div>
+            </div>
+            
+            <!-- AWAY -->
+            <div class="away">
+                <div class="teamscore">
+                    <div class="score" id="score_away">0</div>
+                    <div class="name name_away" id="name_away"></div>
+                </div>
+                <div class="logo">
+                    <img class="logo_away" id="img_away" src="" alt="" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
