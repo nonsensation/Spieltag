@@ -1,223 +1,352 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<style>
-@import url('https://fonts.googleapis.com/css2?family=family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-/* @import url('https://fonts.googleapis.com/css2?family=Aldrich&family=Audiowide&family=Black+Ops+One&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Gemunu+Libre:wght@800&family=Goldman:wght@400;700&family=Jockey+One&family=Noto+Sans+Display:wght@900&family=Noto+Sans+Mono:wght@900&family=Oxanium:wght@200;300;400;500;600;700;800&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Tomorrow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap'); */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Generator</title>
+    <!-- Add QR Code JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f0f2f5; color: #333; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .container { 
+            display: flex; 
+            flex: 1; 
+            width: 100%; 
+            height: 100%; 
+            max-width: 100%; 
+            gap: 20px; 
+            padding-bottom: 20px;
+            box-sizing: border-box;
+        }
 
-/* @font-face {
-  font-family: 'Quantico';
-  src:  url('Quantico-Bold.ttf') format('truetype');
-} */
+        /* Preview Area: Takes up available space */
+        .preview { 
+            flex: 1; 
+            background-color: #202020;
+            background-image:
+              linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+              linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+              linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 8px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
 
-.scoreboard {
-	font-family: 'Quantico', sans-serif;
-	font-weight: 900;
-	width: 40em;
-}
-/**************
-* HOME    *
-**************/
-.name_home, #score_home {color: white}
-.name_away, #score_away {color: black}
-.name_home::after {
-  content: 'Saalebiber';
-}
-.home {
-  /* background: linear-gradient(0deg, rgb(0, 152, 34) 10%, rgb(57, 57, 57) 5%); */
-  /* background: linear-gradient(0deg, black 0%, red 20%, red 20%, white 50%); */
-  background: linear-gradient(0deg, red 10%, white 5%);
-  /* background: linear-gradient(0deg, red 10%, white 5%); */
-  background: linear-gradient(0deg, rgb(0, 0, 0) 10%, rgb(30, 113, 58) 5%);
-}
-.logo_home {
+        .preview h2 {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            color: rgba(255,255,255,0.5);
+            margin: 0;
+            font-size: 1.2rem;
+            z-index: 10;
+        }
 
-}
-/**************
-* AWAY    *
-**************/
-.name_away::after {
-  content: 'Black Lions';
-}
-.away {
-  /* background: linear-gradient(0deg, #002e83 10%, lightgrey 5%); */
-  /* background: linear-gradient(0deg, black 10%, red 10%, red 20%, white 50%); */
-  /* background: linear-gradient(0deg, black 10%, rgb(0, 96, 0) 5%); */
-  background: linear-gradient(0deg, red 10%, white 5%);
-}
-.logo_away {
+        /* Controls Sidebar: Fixed width or limited flex */
+        .controls { 
+            width: 320px; 
+            min-width: 320px;
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1); 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
 
-}
+        h3 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85em; color: #555; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
+        
+        .color-row { display: flex; gap: 8px; align-items: center; }
+        input[type="color"] { border: none; width: 100%; height: 35px; cursor: pointer; background: none; padding: 0; }
+        
+        .section-title { font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 15px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 2px;}
 
+        button { background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 0.95em; width: 100%; margin-top: 5px; transition: background 0.2s; font-weight: 500;}
+        button:hover { background: #0056b3; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        
+        iframe { border: none; width: 100%; height: 100%; background: transparent; }
+        
+        .loader { font-size: 0.8em; color: #666; font-style: italic; display: none; margin-top: 5px;}
+        
+        .url-output { margin-top: auto; padding-top: 20px; border-top: 2px solid #eee; }
+        .url-text { font-family: monospace; font-size: 0.8em; word-break: break-all; color: #555; background: #f8f9fa; padding: 5px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; max-height: 60px; overflow-y: auto; }
 
+        #qrcode {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            width: fit-content;
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        #qrcode img {
+            display: block;
+        }
 
-
-
-
-body {
-	/*background-color: #333;*/
-  font-size: 100%;
-}
-
-.scoreboard {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	margin: 3em;
-	/* border: 3px solid black; */
-	/* box-shadow: 20px 20px 10px grey; */
-}
-
-.header {
-  display: flex;
-  width: 100%;
-  background-color: rgb(0, 0, 0);
-  color:rgb(255, 255, 255);
-  flex-direction: row;
-  justify-content: center;
-  font-weight: 500;
-  font-size: 75%;
-
-  /* border-bottom: 3px solid black; */
-  /* display: none; */
-
-}
-.header > .period {
-  padding: 0.15em 0.5em;
-  padding-top: 0;
-  left: 0;
-  position: absolute;
-}
-.header > .time {
-  align-self: center;
-  color: transparent;
-}
-
-.body {
-}
-.teams {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  font-size: 175%;
-}
-.home {
-  width: 50%;
-  flex-direction: row;
-  display: flex;align-items: center;
-  justify-content: space-between;
-}
-.away {
-  width: 50%;
-  display: flex;align-items: center;
-  background-color: rgba(230,190,0,0.99);
-  flex-direction: row;
-  justify-content: space-between;
-}
-.teamscore {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%
-}
-.home > .logo {
-
-}
-.away > .logo {
-
-}
-.logo {
-  display: flex;
-  padding:  auto;
-  margin:  auto;
-}
-.logo > img {
-  height: 1.25em;
-}
-.home > .logo {
-  padding-right: 0.2em;
-}
-.away > .logo {
-  padding-left: 0.2em;
-}
-.score,.away,.home {
-  padding: 0 0.2em;
-}
-.name {
-  overflow: hidden;
-  white-space: nowrap;
-}
-</style>
+        @media (max-width: 900px) {
+            .container { flex-direction: column-reverse; height: auto; overflow: visible; }
+            body { height: auto; overflow: auto; }
+            .controls { width: 100%; min-width: 0; }
+            .preview { min-height: 400px; }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="scoreboard">
-    <div class="header">
-      <div class="period" id="period">1. Drittel</div>
-      <div class="time">00:00</div>
+<div class="container">
+    <!-- PREVIEW AREA -->
+    <div class="preview">
+        <h2>Live Preview</h2>
+        <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
     </div>
-    <div class="body">
-      <div class="teams">
-        <div class="home">
-          <div class="logo">
-            <img class="logo_home" src="logo_home.png" alt="">
-          </div>
-          <div class="teamscore">
-            <div class="dummy-to-center"></div>
-            <div class="name name_home"></div>
-            <div class="score" id="score_home">0</div>
-          </div>
 
+    <!-- SIDEBAR CONTROLS -->
+    <div class="controls">
+        <h3>Configuration</h3>
+        
+        <div class="form-group">
+            <label>Design Style</label>
+            <select id="designStyle" onchange="generate()">
+                <option value="default">Default (Original)</option>
+                <option value="retro">Retro Pixel</option>
+                <option value="modern">Modern Clean</option>
+                <option value="neon">Neon</option>
+                <option value="broadcast">Broadcast Strip</option>
+                <option value="glass">Glassmorphism</option>
+                <option value="bold">Bold Typography</option>
+                <option value="material">Material Card</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="islands">Floating Islands</option>
+            </select>
         </div>
-        <div class="away">
-          <div class="teamscore" style="color: rgb(0, 0, 0)">
-            <div class="score" id="score_away">0</div>
-            <div class="name name_away"></div>
-            <div class="dummy-to-center"></div>
-          </div>
-          <div class="logo">
-            <img class="logo_away" src="logo_guest.png" alt="">
-          </div>
+        
+        <div class="form-group">
+            <label>Game ID</label>
+            <div style="display:flex; gap:5px;">
+                <input type="number" id="gameId" value="42941" placeholder="e.g. 42941" oninput="fetchGameDetails()">
+                <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 15px;">Load</button>
+            </div>
+            <div class="loader" id="loader">Fetching names...</div>
         </div>
-      </div>
+
+        <div class="section-title">Home Team</div>
+        <div class="form-group">
+            <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                <img id="homeLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
+                <input type="text" id="hn" placeholder="Name Override" oninput="generate()">
+            </div>
+            <div class="color-row">
+                <input type="color" id="hp" value="#000000" title="Primary" oninput="generate()">
+                <input type="color" id="hs" value="#1e713a" title="Secondary" oninput="generate()">
+                <input type="color" id="ht" value="#ffffff" title="Text" oninput="generate()">
+            </div>
+        </div>
+
+        <div class="section-title">Guest Team</div>
+        <div class="form-group">
+            <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                <img id="guestLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
+                <input type="text" id="gn" placeholder="Name Override" oninput="generate()">
+            </div>
+            <div class="color-row">
+                <input type="color" id="gp" value="#ff0000" title="Primary" oninput="generate()">
+                <input type="color" id="gs" value="#ffffff" title="Secondary" oninput="generate()">
+                <input type="color" id="gt" value="#000000" title="Text" oninput="generate()">
+            </div>
+        </div>
+
+        <div class="url-output" id="urlOutput" style="display:none;">
+            <label>Generated URL:</label>
+            <div class="url-text" id="finalUrl"></div>
+            <button id="copyBtn" onclick="copyAndOpen()">Copy & Open Link</button>
+            
+            <div id="qrcode"></div>
+        </div>
     </div>
-  </div>
+</div>
+
+<script>
+    const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
+
+    async function fetchGameDetails() {
+        const id = document.getElementById('gameId').value;
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+        loader.innerText = 'Fetching...';
+
+        try {
+            const res = await fetch(`https://saisonmanager.de/api/v2/games/${id}.json`);
+            if(!res.ok) throw new Error('Game not found');
+            const data = await res.json();
+            
+            if(data.home_team_name) document.getElementById('hn').placeholder = `${data.home_team_name}`;
+            if(data.guest_team_name) document.getElementById('gn').placeholder = `${data.guest_team_name}`;
+            
+            loader.innerText = `Matched: ${data.home_team_name} vs ${data.guest_team_name}`;
+            loader.style.color = 'green';
+            
+            generate();
+
+            const fixLogoUrl = (url) => {
+                if (!url) return '';
+                if (url.startsWith('/')) return 'https://saisonmanager.de' + url;
+                return url;
+            };
+
+            if (data.home_team_logo) {
+                const img = document.getElementById('homeLogoPreview');
+                img.src = fixLogoUrl(data.home_team_logo);
+                img.style.display = 'block';
+            }
+            if (data.guest_team_logo) {
+                const img = document.getElementById('guestLogoPreview');
+                img.src = fixLogoUrl(data.guest_team_logo);
+                img.style.display = 'block';
+            }
+
+        } catch (e) {
+            loader.innerText = e.message;
+            loader.style.color = 'red';
+        }
+    }
+
+    function generate() {
+        saveSettings();
+
+        const params = new URLSearchParams();
+        const id = document.getElementById('gameId').value;
+        if(id) params.append('id', id);
+
+        const design = document.getElementById('designStyle').value;
+        if(design && design !== 'default') params.append('design', design);
+
+        const hn = document.getElementById('hn').value;
+        const hp = document.getElementById('hp').value;
+        const hs = document.getElementById('hs').value;
+        const ht = document.getElementById('ht').value;
+        
+        if(hn) params.append('hn', hn);
+        if(hp !== '#000000') params.append('hp', hp); 
+        else params.append('hp', hp); 
+        
+        params.append('hs', hs);
+        params.append('ht', ht);
+
+        const gn = document.getElementById('gn').value;
+        const gp = document.getElementById('gp').value;
+        const gs = document.getElementById('gs').value;
+        const gt = document.getElementById('gt').value;
+
+        if(gn) params.append('gn', gn);
+        params.append('gp', gp);
+        params.append('gs', gs);
+        params.append('gt', gt);
+
+        const finalString = `${BASE_URL}?${params.toString()}`;
+        
+        // Update Iframe
+        const currentSrc = document.getElementById('previewFrame').src;
+        if (!currentSrc.includes(params.toString())) {
+             document.getElementById('previewFrame').src = `boards.html?${params.toString()}`;
+        }
+        
+        document.getElementById('urlOutput').style.display = 'block';
+        document.getElementById('finalUrl').innerText = finalString;
+        
+        const btn = document.getElementById('copyBtn');
+        if(btn.innerText === "Copied!") btn.innerText = "Copy & Open Link";
+
+        // Update QR
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = "";
+        new QRCode(qrContainer, {
+            text: finalString,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.L
+        });
+    }
+
+    function copyAndOpen() {
+        const urlText = document.getElementById('finalUrl').innerText;
+        
+        navigator.clipboard.writeText(urlText).then(() => {
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "Copied!";
+            
+            // Open in new tab
+            window.open(urlText, '_blank');
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 3000);
+        });
+    }
+
+    function saveSettings() {
+        const settings = {
+            gameId: document.getElementById('gameId').value,
+            design: document.getElementById('designStyle').value,
+            hn: document.getElementById('hn').value,
+            hp: document.getElementById('hp').value,
+            hs: document.getElementById('hs').value,
+            ht: document.getElementById('ht').value,
+            gn: document.getElementById('gn').value,
+            gp: document.getElementById('gp').value,
+            gs: document.getElementById('gs').value,
+            gt: document.getElementById('gt').value
+        };
+        localStorage.setItem('scoreboardGenAttributes', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const stored = localStorage.getItem('scoreboardGenAttributes');
+        if (stored) {
+            try {
+                const s = JSON.parse(stored);
+                if (s.gameId) document.getElementById('gameId').value = s.gameId;
+                if (s.design) document.getElementById('designStyle').value = s.design;
+                if (s.hn) document.getElementById('hn').value = s.hn;
+                if (s.hp) document.getElementById('hp').value = s.hp;
+                if (s.hs) document.getElementById('hs').value = s.hs;
+                if (s.ht) document.getElementById('ht').value = s.ht;
+                if (s.gn) document.getElementById('gn').value = s.gn;
+                if (s.gp) document.getElementById('gp').value = s.gp;
+                if (s.gs) document.getElementById('gs').value = s.gs;
+                if (s.gt) document.getElementById('gt').value = s.gt;
+            } catch (e) { console.error(e); }
+        }
+    }
+
+    window.onload = function() {
+        loadSettings();
+        fetchGameDetails();
+    };
+</script>
 
 </body>
-
-<script type="text/javascript">
-  const API_URL = 'https://saisonmanager.de/api/v2/games/42941.json';
-  const FETCH_INTERVAL = 10000; // 10 seconds
-
-  /**
-   * Fetches the game data from the API and updates only the scores and period.
-   */
-  async function fetchAndUpdateScore() {
-    try {
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      // --- 1. Update Scores ONLY ---
-      const homeGoals = data.result?.home_goals ?? 0;
-      const guestGoals = data.result?.guest_goals ?? 0;
-      document.getElementById('score_home').innerText = homeGoals;
-      document.getElementById('score_away').innerText = guestGoals;
-
-      document.getElementById('period').innerText = data.current_period_title?.title ?? "1. Drittel";
-
-    } catch (error) {
-      console.error('Error fetching scoreboard data:', error);
-    }
-  }
-
-  // 1. Initial fetch to load data immediately on script execution
-  fetchAndUpdateScore();
-
-  // 2. Set up interval for polling every 10 seconds
-  setInterval(fetchAndUpdateScore, FETCH_INTERVAL);
-</script>
 </html>
