@@ -6,6 +6,7 @@
     <title>Scoreboards</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Press+Start+2P&family=Roboto:wght@300;400;500;700;900&family=Oswald:wght@400;700&family=Montserrat:wght@400;700;900&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     
     <style>
         /* --- BASE VARIABLES & RESET --- */
@@ -366,6 +367,48 @@
     // Start
     loadDesign(); // Defined in previous script block
     setInterval(fetchGameData, FETCH_INTERVAL);
+
+    // --- PEERJS CLIENT ---
+    const syncId = getParam('sync_id');
+    const syncPwd = getParam('sync_pwd');
+
+    if (syncId) {
+        console.log("Initializing Remote Sync Client...", syncId);
+        
+        // Connect
+        const peer = new Peer(null, { debug: 1 });
+        
+        peer.on('open', (id) => {
+            const conn = peer.connect(syncId, {
+                reliable: true
+            });
+            
+            conn.on('open', () => {
+                console.log("Connected to Host. Authenticating...");
+                conn.send({ type: 'auth', password: syncPwd });
+            });
+            
+            conn.on('data', (data) => {
+                if (data.type === 'timer_update') {
+                    updateTimerDisplay(data);
+                    if (data.penalties) {
+                        renderPenalties(data.penalties);
+                    } else {
+                        renderPenalties([]);
+                    }
+                }
+            });
+            
+            conn.on('close', () => {
+                 console.log("Connection lost");
+                 // Auto reconnect?
+                 setTimeout(() => {
+                     // Simple reload might be better to get fresh ID if changed, 
+                     // but here we just wait.
+                 }, 3000);
+            });
+        });
+    }
 
 </script>
 </body>
