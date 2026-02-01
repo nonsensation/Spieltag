@@ -281,40 +281,11 @@
         }
     }
 
-    let penaltyContainersInitialized = false;
-
-    function initPenaltyContainers() {
-        if (penaltyContainersInitialized) return;
-
-        // Try to find .home and .away
-        const homeDiv = document.querySelector('.home');
-        const guestDiv = document.querySelector('.away');
-
-        if (homeDiv && !document.getElementById('pen-box-home')) {
-            const box = document.createElement('div');
-            box.id = 'pen-box-home';
-            box.className = 'penalty-box';
-            homeDiv.appendChild(box);
-        }
-        
-        if (guestDiv && !document.getElementById('pen-box-guest')) {
-            const box = document.createElement('div');
-            box.id = 'pen-box-guest';
-            box.className = 'penalty-box';
-            guestDiv.appendChild(box);
-        }
-        
-        penaltyContainersInitialized = true;
-    }
-
     function renderPenalties(penalties) {
-        // Ensure containers exist (retry if design reloaded)
-        initPenaltyContainers();
-
         const hContainer = document.getElementById('pen-box-home');
         const gContainer = document.getElementById('pen-box-guest');
         
-        if(!hContainer || !gContainer) return; // Design might not support it yet
+        if(!hContainer || !gContainer) return; // Design does not have penalty boxes yet
 
         hContainer.innerHTML = '';
         gContainer.innerHTML = '';
