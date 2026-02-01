@@ -618,6 +618,7 @@
                 <li><code>score_away</code>: Gast Tore</li>
             </ul>
             <p style="font-size:0.9em; color:#666; margin-top:5px;">Strafen werden autom. in <code>.home</code> und <code>.away</code> Container eingefügt (Klasse: <code>.penalty-box</code>).</p>
+            <p style="font-size:0.9em; color:#666; margin-top:5px;">Füge ein Element mit der Klasse <code>dev-connection-indicator</code> hinzu, um den Sync-Status anzuzeigen.</p>
 
             <h4 style="margin-top:15px;">CSS Variablen</h4>
             <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
@@ -794,7 +795,16 @@
         generate(); // Final generate on close
     }
 
-    function resetCustomCode() {
+    async function resetCustomCode() {
+        if (!confirm("Möchten Sie den Code wirklich auf den Standard zurücksetzen? Ihre Änderungen gehen verloren.")) return;
+        
+        try {
+            const codeResp = await fetch('designs/default.html');
+            if(codeResp.ok) {
+                DEFAULT_CODE = await codeResp.text();
+            }
+        } catch(e) { console.error("Could not refresh default.html"); }
+
         document.getElementById('customCode').value = DEFAULT_CODE;
         generate();
     }
