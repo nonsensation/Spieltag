@@ -468,6 +468,14 @@
                  <div style="font-size:0.8em; color:#666; margin-top:5px;">
                      Status: <span id="syncStatus">Offline</span>
                  </div>
+                 
+                 <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" id="includeFullState" onchange="generate()" style="width:auto; height:auto;">
+                        <label for="includeFullState" style="display:inline; margin:0; font-size:0.85em; color:#555;">Alle Einstellungen in QR Code</label>
+                    </div>
+                 </div>
+
                  <div style="font-size:0.7em; color:#999; margin-top:2px;">
                      Hinweis: Beide Geräte müssen online sein.
                  </div>
@@ -816,74 +824,83 @@
 
     function performGenerate() {
         saveSettings();
+        
+        const settings = getSettingsFromDOM();
 
-        const params = new URLSearchParams();
-        const id = document.getElementById('gameId').value;
-        if(id) params.append('id', id);
-
-        const design = document.getElementById('designStyle').value;
-        if(design && design !== 'default') params.append('design', design);
-
+        // Broadcast if Sync is active
+        if (settings.syncEnabled && currentPeerId) {
+            broadcastSettings(settings);
+        }
+        
+        // Restore Custom Button Visibility (was accidentally pruned)
         const customTrigger = document.getElementById('customCodeTrigger');
-        if (design === 'custom') {
+        if (settings.design === 'custom') {
             customTrigger.style.display = 'block';
-            const code = document.getElementById('customCode').value || DEFAULT_CODE;
-            if(!document.getElementById('customCode').value) document.getElementById('customCode').value = code;
+            let code = document.getElementById('customCode').value;
+            if(!code) {
+                 code = DEFAULT_CODE;
+                 document.getElementById('customCode').value = code;
+            }
             localStorage.setItem('scoreboardCustomCode', code);
         } else {
             customTrigger.style.display = 'none';
         }
 
-        const interval = document.getElementById('updateInterval').value;
-        if(interval) params.append('interval', interval);
+        const params = new URLSearchParams();
+        params.append('id', settings.gameId);
 
-        const hn = document.getElementById('hn').value;
-        const hp = document.getElementById('hp').value;
-        const hs = document.getElementById('hs').value;
-        const ht = document.getElementById('ht').value;
-        
-        if(hn) params.append('hn', hn);
-        if(hp !== '#000000') params.append('hp', hp); 
-        else params.append('hp', hp); 
-        
-        params.append('hs', hs);
-        params.append('ht', ht);
+        // CONDITIONAL URL GENERATION
+        // Logic:
+        // 1. Always ID
+        // 2. If Sync ON:
+        //    - Add Sync Params
+        //    - If FullState ON: Add All Params
+        //    - Else: Minimal
+        // 3. If Sync OFF: Add All Params
 
-        const gn = document.getElementById('gn').value;
-        const gp = document.getElementById('gp').value;
-        const gs = document.getElementById('gs').value;
-        const gt = document.getElementById('gt').value;
-
-        if(gn) params.append('gn', gn);
-        params.append('gp', gp);
-        params.append('gs', gs);
-        params.append('gt', gt);
-
-        // Sync Params
-        if (currentPeerId && document.getElementById('syncEnabled').checked) {
-            params.append('sync_id', currentPeerId);
-            params.append('sync_pwd', document.getElementById('syncPassword').value);
+        if (settings.syncEnabled && currentPeerId) {
+             params.append('sync_id', currentPeerId);
+             params.append('sync_pwd', settings.syncPwd);
+             
+             if (document.getElementById('includeFullState').checked) {
+                 appendAllParams(params, settings);
+             }
+        } else {
+             appendAllParams(params, settings);
         }
 
         const finalString = `${BASE_URL}?${params.toString()}`;
         
-        // Update Iframe
-        const iframe = document.getElementById('previewFrame');
-        const newSrc = `boards.html?${params.toString()}`;
+        // Update Iframe (Always full state for local preview)
+        // Ensure local preview mirrors what we want
+        const localParams = new URLSearchParams();
+        localParams.append('id', settings.gameId);
+        localParams.append('design', settings.design);
+        // ... (We could construct full params for local iframe, 
+        // OR we can just use the DOM manipulation on the iframe too? 
+        // Actually the iframe is just a page. Let's keep using full params for the local iframe 
+        // so it doesn't need to connect via PeerJS to itself (which is complex).
+        localParams.append('hn', settings.hn);
+        localParams.append('hp', settings.hp);
+        localParams.append('hs', settings.hs);
+        localParams.append('ht', settings.ht);
+        localParams.append('gn', settings.gn);
+        localParams.append('gp', settings.gp);
+        localParams.append('gs', settings.gs);
+        localParams.append('gt', settings.gt);
         
-        if (design === 'custom') {
-            // Force reload for custom design to pick up localStorage changes
+        const newSrc = `boards.html?${localParams.toString()}`;
+        
+        const iframe = document.getElementById('previewFrame');
+        if (settings.design === 'custom') {
             iframe.src = newSrc;
-            // Force reload even if src string is identical because content (localStorage) changed
-            // usage of newSrc directly might not trigger reload if identical
-            // We append a timestamp or just reload contentWindow
-            if(iframe.contentWindow && iframe.contentWindow.location.href.includes(newSrc)) {
+             if(iframe.contentWindow && iframe.contentWindow.location.href.includes(newSrc)) {
                 iframe.contentWindow.location.reload();
             } else {
                 iframe.src = newSrc;
             }
         } else {
-            if (!iframe.src.includes(params.toString())) {
+            if (!iframe.src.includes(localParams.toString())) {
                  iframe.src = newSrc;
             }
         }
@@ -905,6 +922,56 @@
             colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.L
         });
+    }
+
+    function getSettingsFromDOM() {
+        const design = document.getElementById('designStyle').value;
+        let customCode = null;
+        if (design === 'custom') {
+            customCode = document.getElementById('customCode').value;
+        }
+
+        return {
+            gameId: document.getElementById('gameId').value,
+            design: design,
+            customCode: customCode,
+            interval: document.getElementById('updateInterval').value,
+            syncEnabled: document.getElementById('syncEnabled').checked,
+            syncPwd: document.getElementById('syncPassword').value,
+            hn: document.getElementById('hn').value,
+            hp: document.getElementById('hp').value,
+            hs: document.getElementById('hs').value,
+            ht: document.getElementById('ht').value,
+            gn: document.getElementById('gn').value,
+            gp: document.getElementById('gp').value,
+            gs: document.getElementById('gs').value,
+            gt: document.getElementById('gt').value
+        };
+    }
+
+    function appendAllParams(params, s) {
+        if(s.design !== 'default') params.append('design', s.design);
+        if(s.interval) params.append('interval', s.interval);
+        
+        if(s.hn) params.append('hn', s.hn);
+        if(s.hp !== '#000000') params.append('hp', s.hp); 
+        else params.append('hp', s.hp); 
+        
+        params.append('hs', s.hs);
+        params.append('ht', s.ht);
+
+        if(s.gn) params.append('gn', s.gn);
+        params.append('gp', s.gp);
+        params.append('gs', s.gs);
+        params.append('gt', s.gt);
+    }
+
+    function broadcastSettings(s) {
+        const payload = {
+            type: 'settings_update',
+            settings: s
+        };
+        broadcastState(payload);
     }
 
     function copyAndOpen() {
@@ -1514,7 +1581,9 @@
                         status.style.color = "green";
 
                         // Send current state immediately
-                        // Trigger update to broadcast
+                        // 1. Settings
+                        broadcastSettings(getSettingsFromDOM());
+                        // 2. Timer
                         updateTimerDisplay();
                     } else {
                         console.log("Auth failed");

@@ -50,7 +50,7 @@
 <script type="text/javascript">
     // --- 1. Configuration & Parsing URL Parameters ---
     const urlParams = new URLSearchParams(window.location.search);
-    const gameId = urlParams.get('id') || '42941';
+    let gameId = urlParams.get('id') || '42941';
 
     // Helper to get param or null
     const getParam = (key) => urlParams.get(key) ? decodeURIComponent(urlParams.get(key)) : null;
@@ -139,7 +139,10 @@
     }
 
     // --- 3. API Fetching Logic ---
-    const API_URL = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
+    // --- 3. API Fetching Logic ---
+    // let API_URL = ... (constructed dynamically now)
+    
+    // Interval from URL (in seconds), default 10s
     
     // Interval from URL (in seconds), default 10s
     const paramInterval = parseFloat(getParam('interval'));
@@ -147,7 +150,8 @@
 
     async function fetchGameData() {
         try {
-            const response = await fetch(API_URL);
+            const url = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             const res = data.result;
@@ -391,11 +395,10 @@
             conn.on('data', (data) => {
                 if (data.type === 'timer_update') {
                     updateTimerDisplay(data);
-                    if (data.penalties) {
-                        renderPenalties(data.penalties);
-                    } else {
-                        renderPenalties([]);
-                    }
+                    if (data.penalties) renderPenalties(data.penalties);
+                    else renderPenalties([]);
+                } else if (data.type === 'settings_update') {
+                    applySettings(data.settings);
                 }
             });
             
@@ -408,6 +411,98 @@
                  }, 3000);
             });
         });
+    }
+
+
+
+    function applySettings(s) {
+        // 1. Check for Design Change OR Custom Code Change
+        // We need to know if we are already showing this custom code to avoid flicker?
+        // But comparing large strings every 100ms is heavy if we broadcast often.
+        // However, broadcast only happens on change.
+        
+        let shouldReload = false;
+        if (s.design && s.design !== document.body.getAttribute('data-design')) warning = true;
+        
+        // If switching to custom, OR if we are in custom and code changed
+        if (s.design !== document.body.getAttribute('data-design')) {
+            shouldReload = true;
+        } else if (s.design === 'custom' && s.customCode) {
+            // Check if code allows us to skip (optional optimization)
+            // For now, just reload to be safe and responsive
+            shouldReload = true;
+        }
+
+        if (shouldReload) {
+            console.log("Design/Code updating...", s.design);
+            loadContentForDesign(s.design, s.customCode);
+        }
+
+        // 2. Update Config Object (so API fetch doesn't overwrite)
+        config.home.name = s.hn;
+        config.guest.name = s.gn;
+        
+        // 3. Apply Colors
+        const root = document.documentElement;
+        if(s.hp) root.style.setProperty('--home-primary', s.hp);
+        if(s.hs) root.style.setProperty('--home-secondary', s.hs);
+        if(s.ht) root.style.setProperty('--home-text', s.ht);
+        
+        if(s.gp) root.style.setProperty('--guest-primary', s.gp);
+        if(s.gs) root.style.setProperty('--guest-secondary', s.gs);
+        if(s.gt) root.style.setProperty('--guest-text', s.gt);
+
+        // 4. Update Game ID if changed
+        if (s.gameId && s.gameId !== gameId) {
+             console.log("Game ID changed to", s.gameId);
+             gameId = s.gameId;
+             fetchGameData();
+        }
+
+        // 5. Apply Text Immediately
+        if(s.hn) setTextIfChanged('name_home', s.hn);
+        if(s.gn) setTextIfChanged('name_away', s.gn);
+    }
+    
+    async function loadContentForDesign(newDesign, customCodePayload) {
+        const container = document.getElementById('board-container');
+        document.body.setAttribute('data-design', newDesign);
+        
+        if (newDesign === 'custom') {
+            const code = customCodePayload || localStorage.getItem('scoreboardCustomCode');
+            if (code) {
+                 container.innerHTML = code;
+                 // Re-exec scripts
+                 const scripts = container.getElementsByTagName("script");
+                 for(let i=0; i<scripts.length; i++) {
+                     try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
+                 }
+                 // Reset
+                 fetchGameData();
+                 penaltyContainersInitialized = false; 
+            } else {
+                 container.innerHTML = '<div style="color:red; background:black; padding:10px;">Waiting for Custom Code...</div>';
+            }
+        } else {
+            try {
+                const response = await fetch(`designs/${newDesign}.html`);
+                if (!response.ok) throw new Error(`Design ${newDesign} not found`);
+                const html = await response.text();
+                container.innerHTML = html;
+                
+                // Re-exec scripts
+                const scripts = container.getElementsByTagName("script");
+                for(let i=0; i<scripts.length; i++) {
+                    try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
+                }
+
+                // Re-apply values
+                fetchGameData();
+                penaltyContainersInitialized = false; 
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
 </script>
