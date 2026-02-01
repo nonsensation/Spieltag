@@ -1,0 +1,14 @@
+[
+    {
+        "id": "default",
+        "name": "Standard (Original)"
+    },
+    {
+        "id": "bold",
+        "name": "Fett Gedruckt"
+    },
+    {
+        "id": "cyberpunk",
+        "name": "Cyberpunk"
+    }
+]
