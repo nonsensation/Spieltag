@@ -129,7 +129,7 @@
         
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85em; color: #555; }
-        input[type="text"], input[type="number"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
+        input[type="text"], input[type="number"], input[type="range"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
         
         .color-row { display: flex; gap: 8px; align-items: center; }
         input[type="color"] { border: none; width: 100%; height: 35px; cursor: pointer; background: none; padding: 0; }
@@ -452,6 +452,21 @@
                             <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 10px;">Laden</button>
                         </div>
                         <div class="loader" id="loader">...</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Skalierung: <span id="scaleValue">1.0</span>x</label>
+                        <input type="range" id="scale" min="0.1" max="3.0" step="0.05" value="1.0" oninput="document.getElementById('scaleValue').innerText = this.value; generate()">
+                        <div style="display:flex; gap:10px; margin-top:5px;">
+                            <div style="flex:1;">
+                                <label style="font-size:0.75em; color:#888;">Min</label>
+                                <input type="number" id="scaleMin" value="0.1" step="0.1" style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:0.75em; color:#888;">Max</label>
+                                <input type="number" id="scaleMax" value="3.0" step="0.1" style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -809,6 +824,22 @@
         generate();
     }
 
+    function updateScaleRange() {
+        const slider = document.getElementById('scale');
+        const minIdx = document.getElementById('scaleMin');
+        const maxIdx = document.getElementById('scaleMax');
+        
+        slider.min = minIdx.value || 0.1;
+        slider.max = maxIdx.value || 3.0;
+        
+        // Ensure current value is within bounds
+        if (parseFloat(slider.value) < parseFloat(slider.min)) slider.value = slider.min;
+        if (parseFloat(slider.value) > parseFloat(slider.max)) slider.value = slider.max;
+        
+        document.getElementById('scaleValue').innerText = slider.value;
+        generate();
+    }
+
     let debounceTimer;
     function generate() {
         // Immediate UI updates
@@ -890,6 +921,7 @@
         localParams.append('gp', settings.gp);
         localParams.append('gs', settings.gs);
         localParams.append('gt', settings.gt);
+        localParams.append('scale', settings.scale);
         
         const newSrc = `boards.html?${localParams.toString()}`;
         
@@ -948,7 +980,8 @@
             gn: document.getElementById('gn').value,
             gp: document.getElementById('gp').value,
             gs: document.getElementById('gs').value,
-            gt: document.getElementById('gt').value
+            gt: document.getElementById('gt').value,
+            scale: document.getElementById('scale').value
         };
     }
 
@@ -967,6 +1000,7 @@
         params.append('gp', s.gp);
         params.append('gs', s.gs);
         params.append('gt', s.gt);
+        if(s.scale !== '1.0' && s.scale !== '1') params.append('scale', s.scale);
     }
 
     function broadcastSettings(s) {
@@ -1007,6 +1041,9 @@
             gp: document.getElementById('gp').value,
             gs: document.getElementById('gs').value,
             gt: document.getElementById('gt').value,
+            scale: document.getElementById('scale').value,
+            scaleMin: document.getElementById('scaleMin').value,
+            scaleMax: document.getElementById('scaleMax').value,
             syncEnabled: document.getElementById('syncEnabled').checked,
             syncId: document.getElementById('syncId').value,
             syncPassword: document.getElementById('syncPassword').value,
@@ -1031,6 +1068,17 @@
                 if (s.gp) document.getElementById('gp').value = s.gp;
                 if (s.gs) document.getElementById('gs').value = s.gs;
                 if (s.gt) document.getElementById('gt').value = s.gt;
+                if (s.scale) {
+                    document.getElementById('scale').value = s.scale;
+                    document.getElementById('scaleValue').innerText = s.scale;
+                }
+                if (s.scaleMin) document.getElementById('scaleMin').value = s.scaleMin;
+                if (s.scaleMax) document.getElementById('scaleMax').value = s.scaleMax;
+                if (document.getElementById('scaleMin').value || document.getElementById('scaleMax').value) {
+                    const slider = document.getElementById('scale');
+                    slider.min = document.getElementById('scaleMin').value || 0.1;
+                    slider.max = document.getElementById('scaleMax').value || 3.0;
+                }
                 if (s.syncEnabled !== undefined) document.getElementById('syncEnabled').checked = s.syncEnabled;
                 if (s.syncId) document.getElementById('syncId').value = s.syncId;
                 if (s.syncPassword) document.getElementById('syncPassword').value = s.syncPassword;

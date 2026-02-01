@@ -72,7 +72,8 @@
             secondary: getParam('gs'),
             text: getParam('gt'),
             name: getParam('gn'),
-        }
+        },
+        scale: getParam('scale') || '1.0'
     };
 
     // --- 2. Helpers ---
@@ -85,6 +86,14 @@
     if (config.guest.primary) root.style.setProperty('--guest-primary', config.guest.primary);
     if (config.guest.secondary) root.style.setProperty('--guest-secondary', config.guest.secondary);
     if (config.guest.text) root.style.setProperty('--guest-text', config.guest.text);
+    
+    function applyScaling(scale) {
+        const board = document.getElementById('board-container');
+        if (board) {
+            board.style.transform = `scale(${scale})`;
+            board.style.transformOrigin = 'center center';
+        }
+    }
 
     // Helper: Safe Text Update
     const setTextIfChanged = (id, text) => {
@@ -134,7 +143,10 @@
         if (config.home.name) setTextIfChanged('name_home', config.home.name);
         if (config.guest.name) setTextIfChanged('name_away', config.guest.name);
 
-        // 4. Trigger Data Fetch
+        // 4. Update Scaling
+        applyScaling(config.scale);
+
+        // 5. Trigger Data Fetch
         fetchGameData();
     }
 
@@ -524,6 +536,12 @@ console.log(paramInterval)
         // 5. Apply Text Immediately
         if(s.hn) setTextIfChanged('name_home', s.hn);
         if(s.gn) setTextIfChanged('name_away', s.gn);
+
+        // 6. Apply Scale
+        if(s.scale) {
+            config.scale = s.scale;
+            applyScaling(s.scale);
+        }
     }
     
     async function loadContentForDesign(newDesign, customCodePayload) {
