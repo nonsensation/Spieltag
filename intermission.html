@@ -9,7 +9,7 @@
         rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0c0e12;
+            --bg-color: rgba(20, 20, 20, 0.7);
             --text-color: #ffffff;
             --accent-color: #ffffff;
             --card-bg: rgba(20, 24, 33, 0.95);
@@ -132,7 +132,7 @@
         }
 
         .card {
-            background: rgba(20, 20, 20, 0.7);
+            background: var(--bg-color, rgba(20, 20, 20, 0.7));
             padding: 30px;
             border-radius: 0;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -505,6 +505,7 @@
         setCol('--guest-primary', urlParams.get('gp'));
         setCol('--guest-secondary', urlParams.get('gs'));
         setCol('--guest-text', urlParams.get('gt'));
+        setCol('--bg-color', urlParams.get('bg'));
 
         function hexToRgb(hex) {
             if (!hex) return "255, 255, 255";
@@ -631,10 +632,13 @@
 
         function renderEvents(events) {
             const container = document.getElementById('eventsContent');
+            const slide = document.getElementById('slide-events');
             if (!events || events.length === 0) {
                 container.innerHTML = "KEINE EREIGNISSE BISHER.";
+                slide.dataset.empty = "true";
                 return;
             }
+            slide.dataset.empty = "false";
 
             // Map and Sort events to ensure they belong to correct periods
             const sortedEvents = [...events].sort((a, b) => {
@@ -707,6 +711,13 @@
 
         function renderTable(table) {
             const container = document.getElementById('tableContent');
+            const slide = document.getElementById('slide-table');
+            if (!table || table.length === 0) {
+                container.innerHTML = "KEINE TABELLENDATEN.";
+                slide.dataset.empty = "true";
+                return;
+            }
+            slide.dataset.empty = "false";
             let html = `<table><thead><tr><th>#</th><th>TEAM</th><th class="meta-val">SP.</th><th class="meta-val">TORE</th><th class="points">PKT</th></tr></thead><tbody>`;
             table.forEach(r => {
                 const cls = (r.team_name === homeTeamName) ? 'highlight-home' : (r.team_name === guestTeamName ? 'highlight-guest' : '');
@@ -735,7 +746,13 @@
             const g = scorers.filter(s => s.team_name === guestTeamName && isPresent(s, 'guest'))
                 .sort((a, b) => getPoints(b) - getPoints(a)).slice(0, 3);
 
-            if (!h.length && !g.length) { container.innerHTML = "KEINE DATEN."; return; }
+            const slide = document.getElementById('slide-scorers');
+            if (!h.length && !g.length) {
+                container.innerHTML = "KEINE DATEN.";
+                slide.dataset.empty = "true";
+                return;
+            }
+            slide.dataset.empty = "false";
 
             const renderTeam = (list, teamName, logo, cls) => {
                 if (!list.length) return "";
@@ -766,7 +783,13 @@
 
         function renderSchedule(games) {
             const container = document.getElementById('scheduleContent');
-            if (!games || !games.length) { container.innerHTML = "KEINE WEITEREN SPIELE."; return; }
+            const slide = document.getElementById('slide-schedule');
+            if (!games || !games.length) {
+                container.innerHTML = "KEINE WEITEREN SPIELE.";
+                slide.dataset.empty = "true";
+                return;
+            }
+            slide.dataset.empty = "false";
             container.innerHTML = games.map(g => {
                 const s = g.result_string || (g.result ? `${g.result.home_goals}:${g.result.guest_goals}` : '-:-');
                 const hLogo = g.home_team_logo ? fixLogoUrl(g.home_team_logo) : '';
@@ -792,9 +815,12 @@
 
         let scrollTimer = null;
         function showSlide(index) {
-            slideIndex = index % slides.length;
+            const validSlides = slides.filter(s => document.getElementById(`slide-${s}`).dataset.empty !== "true");
+            const activePool = validSlides.length > 0 ? validSlides : slides;
+
+            slideIndex = index % activePool.length;
             document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
-            const active = document.getElementById(`slide-${slides[slideIndex]}`);
+            const active = document.getElementById(`slide-${activePool[slideIndex]}`);
             active.classList.add('active');
 
             // Handle Scroll

@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboards</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Press+Start+2P&family=Roboto:wght@300;400;500;700;900&family=Oswald:wght@400;700&family=Montserrat:wght@400;700;900&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Press+Start+2P&family=Roboto:wght@300;400;500;700;900&family=Oswald:wght@400;700&family=Montserrat:wght@400;700;900&family=Teko:wght@500;700&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    
+
     <style>
         /* --- BASE VARIABLES & RESET --- */
         :root {
@@ -15,7 +18,7 @@
             --home-primary: rgb(0, 0, 0);
             --home-secondary: rgb(30, 113, 58);
             --home-text: white;
-            
+
             --guest-primary: red;
             --guest-secondary: white;
             --guest-text: black;
@@ -38,545 +41,578 @@
         }
 
         /* Initial loader or fallback */
-        .loading { font-family: monospace; color: #888; }
+        .loading {
+            font-family: monospace;
+            color: #888;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="board-container">
-    <div class="loading">Loading design...</div>
-</div>
+    <div id="board-container">
+        <div class="loading">Loading design...</div>
+    </div>
 
-<script type="text/javascript">
-    // --- 1. Configuration & Parsing URL Parameters ---
-    const urlParams = new URLSearchParams(window.location.search);
-    let gameId = urlParams.get('id') || '42941';
+    <script type="text/javascript">
+        // --- 1. Configuration & Parsing URL Parameters ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let gameId = urlParams.get('id') || '42941';
 
-    // Helper to get param or null
-    const getParam = (key) => urlParams.get(key) ? decodeURIComponent(urlParams.get(key)) : null;
+        // Helper to get param or null
+        const getParam = (key) => urlParams.get(key) ? decodeURIComponent(urlParams.get(key)) : null;
 
-    // Design Param
-    const design = getParam('design') || 'default';
-    document.body.setAttribute('data-design', design);
+        // Design Param
+        const design = getParam('design') || 'default';
+        document.body.setAttribute('data-design', design);
 
-    // Configuration Object
-    const config = {
-        home: {
-            primary: getParam('hp'),   
-            secondary: getParam('hs'), 
-            text: getParam('ht'),      
-            name: getParam('hn'),      
-        },
-        guest: {
-            primary: getParam('gp'),
-            secondary: getParam('gs'),
-            text: getParam('gt'),
-            name: getParam('gn'),
-        },
-        scale: getParam('scale') || '1.0'
-    };
+        // Configuration Object
+        const config = {
+            home: {
+                primary: getParam('hp'),
+                secondary: getParam('hs'),
+                text: getParam('ht'),
+                name: getParam('hn'),
+            },
+            guest: {
+                primary: getParam('gp'),
+                secondary: getParam('gs'),
+                text: getParam('gt'),
+                name: getParam('gn'),
+            },
+            scale: getParam('scale') || '1.0',
+            bg: getParam('bg')
+        };
 
-    // --- 2. Helpers ---
-    // Apply Visual Overrides immediately (Colors)
-    const root = document.documentElement;
-    if (config.home.primary) root.style.setProperty('--home-primary', config.home.primary);
-    if (config.home.secondary) root.style.setProperty('--home-secondary', config.home.secondary);
-    if (config.home.text) root.style.setProperty('--home-text', config.home.text);
-    
-    if (config.guest.primary) root.style.setProperty('--guest-primary', config.guest.primary);
-    if (config.guest.secondary) root.style.setProperty('--guest-secondary', config.guest.secondary);
-    if (config.guest.text) root.style.setProperty('--guest-text', config.guest.text);
-    
-    function applyScaling(scale) {
-        const board = document.getElementById('board-container');
-        if (board) {
-            board.style.transform = `scale(${scale})`;
-            board.style.transformOrigin = 'center center';
-        }
-    }
+        // --- 2. Helpers ---
+        // Apply Visual Overrides immediately (Colors)
+        const root = document.documentElement;
+        if (config.bg) root.style.setProperty('--bg-color', config.bg);
+        if (config.home.primary) root.style.setProperty('--home-primary', config.home.primary);
+        if (config.home.secondary) root.style.setProperty('--home-secondary', config.home.secondary);
+        if (config.home.text) root.style.setProperty('--home-text', config.home.text);
 
-    // Helper: Safe Text Update
-    const setTextIfChanged = (id, text) => {
-        const el = document.getElementById(id);
-        if (el && el.innerText !== text) el.innerText = text;
-    };
+        if (config.guest.primary) root.style.setProperty('--guest-primary', config.guest.primary);
+        if (config.guest.secondary) root.style.setProperty('--guest-secondary', config.guest.secondary);
+        if (config.guest.text) root.style.setProperty('--guest-text', config.guest.text);
 
-    function fixLogoUrl(url) {
-        if (!url) return '';
-        if (url.startsWith('/')) {
-            return 'https://saisonmanager.de' + url;
-        }
-        return url;
-    }
-
-    // --- 3. Logic ---
-    async function loadDesign() {
-        const container = document.getElementById('board-container');
-        
-        // 1. Load HTML Content
-        if (design === 'custom') {
-            const customCode = localStorage.getItem('scoreboardCustomCode');
-            if (customCode) {
-                container.innerHTML = customCode;
-            } else {
-                container.innerHTML = '<div style="color:red">No custom code found.</div>';
+        function applyScaling(scale) {
+            const board = document.getElementById('board-container');
+            if (board) {
+                board.style.transform = `scale(${scale})`;
+                board.style.transformOrigin = 'center center';
             }
-        } else {
+        }
+
+        // Helper: Safe Text Update
+        const setTextIfChanged = (id, text) => {
+            const el = document.getElementById(id);
+            if (el && el.innerText !== text) el.innerText = text;
+        };
+
+        function fixLogoUrl(url) {
+            if (!url) return '';
+            if (url.startsWith('/')) {
+                return 'https://saisonmanager.de' + url;
+            }
+            return url;
+        }
+
+        // --- 3. Logic ---
+        async function loadDesign() {
+            const container = document.getElementById('board-container');
+
+            // 1. Load HTML Content
+            if (design === 'custom') {
+                const customCode = localStorage.getItem('scoreboardCustomCode');
+                if (customCode) {
+                    container.innerHTML = customCode;
+                } else {
+                    container.innerHTML = '<div style="color:red">No custom code found.</div>';
+                }
+            } else {
+                try {
+                    const response = await fetch(`designs/${design}.html`);
+                    if (!response.ok) throw new Error(`Design ${design} not found`);
+                    const html = await response.text();
+                    container.innerHTML = html;
+                } catch (err) {
+                    console.error(err);
+                    container.innerHTML = `<div style="color:red">Error loading design: ${design}</div>`;
+                }
+            }
+
+            // 2. Execute Scripts (if any)
+            const scripts = container.getElementsByTagName("script");
+            for (let i = 0; i < scripts.length; i++) {
+                try { eval(scripts[i].innerText); } catch (e) { console.error('Script error:', e); }
+            }
+
+            // 3. Apply Name Overrides (Now that DOM exists)
+            if (config.home.name) setTextIfChanged('name_home', config.home.name);
+            if (config.guest.name) setTextIfChanged('name_away', config.guest.name);
+
+            // 4. Update Scaling
+            applyScaling(config.scale);
+
+            // 5. Trigger Data Fetch
+            fetchGameData();
+        }
+
+        // --- 3. API Fetching Logic ---
+        // --- 3. API Fetching Logic ---
+        // let API_URL = ... (constructed dynamically now)
+
+        // Interval from URL (in seconds), default 10s
+
+        // Interval from URL (in seconds), default 10s
+        const paramInterval = parseFloat(getParam('interval'));
+        const FETCH_INTERVAL = (paramInterval && paramInterval > 0) ? (paramInterval * 1000) : 10000;
+        console.log(paramInterval)
+        async function fetchGameData() {
             try {
-                const response = await fetch(`designs/${design}.html`);
-                if (!response.ok) throw new Error(`Design ${design} not found`);
-                const html = await response.text();
-                container.innerHTML = html;
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = `<div style="color:red">Error loading design: ${design}</div>`;
-            }
-        }
+                const url = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                const res = data.result;
 
-        // 2. Execute Scripts (if any)
-        const scripts = container.getElementsByTagName("script");
-        for(let i=0; i<scripts.length; i++) {
-            try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
-        }
+                // Update Scores & Period
+                const hGoals = (res?.home_goals ?? 0).toString();
+                const gGoals = (res?.guest_goals ?? 0).toString();
+                const period = (data.current_period_title?.title ?? "1. Drittel");
 
-        // 3. Apply Name Overrides (Now that DOM exists)
-        if (config.home.name) setTextIfChanged('name_home', config.home.name);
-        if (config.guest.name) setTextIfChanged('name_away', config.guest.name);
+                setTextIfChanged('score_home', hGoals);
+                setTextIfChanged('score_away', gGoals);
+                setTextIfChanged('period', period);
 
-        // 4. Update Scaling
-        applyScaling(config.scale);
-
-        // 5. Trigger Data Fetch
-        fetchGameData();
-    }
-
-    // --- 3. API Fetching Logic ---
-    // --- 3. API Fetching Logic ---
-    // let API_URL = ... (constructed dynamically now)
-    
-    // Interval from URL (in seconds), default 10s
-    
-    // Interval from URL (in seconds), default 10s
-    const paramInterval = parseFloat(getParam('interval'));
-    const FETCH_INTERVAL = (paramInterval && paramInterval > 0) ? (paramInterval * 1000) : 10000;
-console.log(paramInterval)
-    async function fetchGameData() {
-        try {
-            const url = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            const res = data.result;
-
-            // Update Scores & Period
-            const hGoals = (res?.home_goals ?? 0).toString();
-            const gGoals = (res?.guest_goals ?? 0).toString();
-            const period = (data.current_period_title?.title ?? "1. Drittel");
-
-            setTextIfChanged('score_home', hGoals);
-            setTextIfChanged('score_away', gGoals);
-            setTextIfChanged('period', period);
-
-            // Update Names (Only if NOT overridden via URL)
-            if (!config.home.name && data.home_team_name) {
-                setTextIfChanged('name_home', data.home_team_name);
-            }
-            if (!config.guest.name && data.guest_team_name) {
-                setTextIfChanged('name_away', data.guest_team_name);
-            }
-
-            // Update Logos
-            const updateLogo = (imgId, rawUrl) => {
-                const img = document.getElementById(imgId);
-                // Safety check: image element must exist
-                if (!img) return;
-                
-                if (!rawUrl) {
-                    img.style.display = 'none';
-                    return;
+                // Update Names (Only if NOT overridden via URL)
+                if (!config.home.name && data.home_team_name) {
+                    setTextIfChanged('name_home', data.home_team_name);
                 }
-                
-                const fullUrl = fixLogoUrl(rawUrl);
-                
-                if (img.dataset.src !== fullUrl) {
-                    img.src = fullUrl;
-                    img.dataset.src = fullUrl; 
-                    img.style.display = 'block';
+                if (!config.guest.name && data.guest_team_name) {
+                    setTextIfChanged('name_away', data.guest_team_name);
                 }
-            };
 
-            updateLogo('img_home', data.home_team_logo);
-            updateLogo('img_away', data.guest_team_logo);
+                // Update Logos
+                const updateLogo = (imgId, rawUrl) => {
+                    const img = document.getElementById(imgId);
+                    // Safety check: image element must exist
+                    if (!img) return;
 
-        } catch (error) {
-            console.error('Error fetching scoreboard data:', error);
-        }
-    }
+                    if (!rawUrl) {
+                        img.style.display = 'none';
+                        return;
+                    }
 
-</script>
+                    const fullUrl = fixLogoUrl(rawUrl);
 
-<style>
-    /* Penalty Box Injection Styles */
-    .penalty-box {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 0.2em;
-        padding-top: 0.2em;
-        margin-top: auto; /* Push to bottom if flex */
-        background: rgba(0,0,0,0.3);
-        min-height: 0;
-    }
+                    if (img.dataset.src !== fullUrl) {
+                        img.src = fullUrl;
+                        img.dataset.src = fullUrl;
+                        img.style.display = 'block';
+                    }
+                };
 
-    .penalty-item {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        background: rgba(0,0,0,0.5);
-        color: white;
-        font-family: 'Quantico', sans-serif;
-        font-size: 0.5em; /* Smaller than main score */
-        padding: 0.1em 0.5em;
-        box-sizing: border-box;
-        overflow: hidden;
-        white-space: nowrap;
-        justify-content: space-between;
-    }
-    
-    .penalty-item .p-time {
-         color: #ff3b30;
-         font-weight: bold;
-         margin-right: 0.5em;
-         min-width: 2.5em;
-    }
+                updateLogo('img_home', data.home_team_logo);
+                updateLogo('img_away', data.guest_team_logo);
 
-    .penalty-item .p-info {
-        display: flex;
-        gap: 0.5em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Connection Status Styles - Only active when .dev-connection-indicator is present */
-    .dev-connection-indicator {
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.7);
-        color: white;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.6em;
-        font-family: sans-serif;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        z-index: 10000;
-        pointer-events: none;
-        transition: all 0.5s;
-        opacity: 0;
-        visibility: hidden;
-    }
-    .dev-connection-indicator.visible { opacity: 1; visibility: visible; }
-    .dev-connection-indicator .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #ccc;
-    }
-    .dev-connection-indicator.connected .dot { background: #4cd964; box-shadow: 0 0 5px #4cd964; }
-    .dev-connection-indicator.disconnected .dot { background: #ff3b30; box-shadow: 0 0 5px #ff3b30; }
-    .dev-connection-indicator.connecting .dot { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
-</style>
-
-<script>
-    // --- 4. Timer Logic (BroadcastChannel) ---
-    const timerChannel = new BroadcastChannel('scoreboard_timer');
-    
-    timerChannel.onmessage = (event) => {
-        if (event.data.type === 'timer_update') {
-            updateTimerDisplay(event.data);
-            if (event.data.penalties) {
-                renderPenalties(event.data.penalties);
-            } else {
-                // If mode is none or empty, clear
-                renderPenalties([]);
+            } catch (error) {
+                console.error('Error fetching scoreboard data:', error);
             }
         }
-    };
 
-    function updateTimerDisplay(data) {
-        const timeEl = document.querySelector('.time');
-        if (timeEl) {
-            if (data.visible) {
-                timeEl.style.display = 'block'; 
-                if (getComputedStyle(timeEl).display === 'none') {
+    </script>
+
+    <style>
+        /* Penalty Box Injection Styles */
+        .penalty-box {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+            padding-top: 0.2em;
+            margin-top: auto;
+            /* Push to bottom if flex */
+            background: rgba(0, 0, 0, 0.3);
+            min-height: 0;
+        }
+
+        .penalty-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-family: 'Quantico', sans-serif;
+            font-size: 0.5em;
+            /* Smaller than main score */
+            padding: 0.1em 0.5em;
+            box-sizing: border-box;
+            overflow: hidden;
+            white-space: nowrap;
+            justify-content: space-between;
+        }
+
+        .penalty-item .p-time {
+            color: #ff3b30;
+            font-weight: bold;
+            margin-right: 0.5em;
+            min-width: 2.5em;
+        }
+
+        .penalty-item .p-info {
+            display: flex;
+            gap: 0.5em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Connection Status Styles - Only active when .dev-connection-indicator is present */
+        .dev-connection-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.6em;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10000;
+            pointer-events: none;
+            transition: all 0.5s;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dev-connection-indicator.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dev-connection-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .dev-connection-indicator.connected .dot {
+            background: #4cd964;
+            box-shadow: 0 0 5px #4cd964;
+        }
+
+        .dev-connection-indicator.disconnected .dot {
+            background: #ff3b30;
+            box-shadow: 0 0 5px #ff3b30;
+        }
+
+        .dev-connection-indicator.connecting .dot {
+            background: #ffcc00;
+            box-shadow: 0 0 5px #ffcc00;
+        }
+    </style>
+
+    <script>
+        // --- 4. Timer Logic (BroadcastChannel) ---
+        const timerChannel = new BroadcastChannel('scoreboard_timer');
+
+        timerChannel.onmessage = (event) => {
+            if (event.data.type === 'timer_update') {
+                updateTimerDisplay(event.data);
+                if (event.data.penalties) {
+                    renderPenalties(event.data.penalties);
+                } else {
+                    // If mode is none or empty, clear
+                    renderPenalties([]);
+                }
+            }
+        };
+
+        function updateTimerDisplay(data) {
+            const timeEl = document.querySelector('.time');
+            if (timeEl) {
+                if (data.visible) {
                     timeEl.style.display = 'block';
+                    if (getComputedStyle(timeEl).display === 'none') {
+                        timeEl.style.display = 'block';
+                    }
+                    timeEl.style.color = 'inherit';
+                    if (timeEl.style.color === 'transparent') {
+                        timeEl.style.color = 'white';
+                    }
+                    timeEl.innerText = data.timeString;
+                } else {
+                    timeEl.style.display = 'none';
                 }
-                timeEl.style.color = 'inherit';
-                if (timeEl.style.color === 'transparent') {
-                     timeEl.style.color = 'white'; 
-                }
-                timeEl.innerText = data.timeString;
-            } else {
-                timeEl.style.display = 'none';
             }
         }
-    }
 
-    function renderPenalties(penalties) {
-        const hContainer = document.getElementById('pen-box-home');
-        const gContainer = document.getElementById('pen-box-guest');
-        
-        if(!hContainer || !gContainer) return; // Design does not have penalty boxes yet
+        function renderPenalties(penalties) {
+            const hContainer = document.getElementById('pen-box-home');
+            const gContainer = document.getElementById('pen-box-guest');
 
-        hContainer.innerHTML = '';
-        gContainer.innerHTML = '';
-        
-        penalties.forEach(p => {
-            const el = document.createElement('div');
-            el.className = 'penalty-item';
-            
-            // Set variables as data attributes for custom CSS
-            el.dataset.team = p.team;
-            el.dataset.player = p.player;
-            el.dataset.number = p.number;
-            el.dataset.code = p.reasonCode || -1;
-            el.dataset.min = p.minutesCode || "2'";
+            if (!hContainer || !gContainer) return; // Design does not have penalty boxes yet
 
-            el.innerHTML = `
+            hContainer.innerHTML = '';
+            gContainer.innerHTML = '';
+
+            penalties.forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'penalty-item';
+
+                // Set variables as data attributes for custom CSS
+                el.dataset.team = p.team;
+                el.dataset.player = p.player;
+                el.dataset.number = p.number;
+                el.dataset.code = p.reasonCode || -1;
+                el.dataset.min = p.minutesCode || "2'";
+
+                el.innerHTML = `
                 <span class="p-time">${p.remaining > 0 ? formatTime(p.remaining) : '0:00'}</span>
                 <div class="p-info">
                     <span style="font-weight:bold;">#${p.number}</span>
                     <span style="opacity:0.8;">${p.player}</span>
                 </div>
             `;
-            
-            if (p.team === 'home') hContainer.appendChild(el);
-            else gContainer.appendChild(el);
-        });
-    }
 
-    function formatTime(totalSeconds) {
-        const s = Math.abs(totalSeconds);
-        const m = Math.floor(s / 60);
-        const sec = s % 60;
-        return `${m}:${sec.toString().padStart(2, '0')}`;
-    }
-
-    // Wrap loadDesign to re-init
-    const originalLoadDesign = window.loadDesign; 
-    // Wait, loadDesign is defined above in local scope in previous files? 
-    // No, it is defined in <script> block in boards.html.
-    // Ideally we inject into it, but since I am replacing the end of file...
-    // I can just call initPenaltyContainers inside the interval or ensure it runs after load.
-    
-    // Quick fix: Override the one from scope if possible or just rely on interval?
-    // loadDesign is async.
-    
-    // Let's hook into the global scope if possible, or just check every render.
-    // Since renderPenalties is called on timer tick (100ms), checking Dom existence there is fine.
-    
-    // However, if design changes, we need to reset initialized flag.
-    // The design parameter is on URL, so design doesn't change without reload.
-    // EXCEPT "Custom" mode updates innerHTML locally.
-    // Ideally we check if container is still valid.
-    
-    // Start
-    loadDesign(); // Defined in previous script block
-    setInterval(fetchGameData, FETCH_INTERVAL);
-
-    // --- PEERJS CLIENT (Remote Sync) ---
-    const syncId = getParam('sync_id');
-    const syncPwd = getParam('sync_pwd');
-
-    if (syncId) {
-        // Cleanup old status div if it exists from previous versions
-        const oldStatus = document.getElementById('connectionStatus');
-        if (oldStatus) oldStatus.remove();
-
-        let peer = null;
-        let activeConn = null;
-        let reconnectTimeout = null;
-
-        function updateStatus(state, msg) {
-            const indicators = document.querySelectorAll('.dev-connection-indicator');
-            
-            indicators.forEach(el => {
-                // Ensure base structure
-                if (!el.querySelector('.dot')) {
-                    el.innerHTML = '<div class="dot"></div><span class="text"></span>';
-                }
-                
-                // Reset and apply state
-                el.classList.remove('connected', 'disconnected', 'connecting');
-                el.classList.add('visible', state);
-                
-                const textEl = el.querySelector('.text');
-                if (textEl) textEl.innerText = msg;
-                
-                el.style.opacity = '1';
-                if (state === 'connected') {
-                    // Start fade out timer
-                    setTimeout(() => {
-                        if (el.classList.contains('connected')) {
-                            el.style.opacity = '0.3';
-                        }
-                    }, 5000);
-                }
+                if (p.team === 'home') hContainer.appendChild(el);
+                else gContainer.appendChild(el);
             });
         }
 
-        function connectToHost() {
-            if (reconnectTimeout) clearTimeout(reconnectTimeout);
-            
-            updateStatus('connecting', 'Verbinde zu Host...');
-            
-            if (peer) peer.destroy();
-            
-            peer = new Peer(null, { debug: 1 });
-            
-            peer.on('open', (id) => {
-                console.log("Peer opened with ID:", id);
-                const conn = peer.connect(syncId, {
-                    reliable: true
-                });
-                
-                conn.on('open', () => {
-                    console.log("Connected to Host. Authenticating...");
-                    updateStatus('connected', 'Verbunden');
-                    activeConn = conn;
-                    conn.send({ type: 'auth', password: syncPwd });
-                });
-                
-                conn.on('data', (data) => {
-                    if (data.type === 'timer_update') {
-                        updateTimerDisplay(data);
-                        if (data.penalties) renderPenalties(data.penalties);
-                        else renderPenalties([]);
-                    } else if (data.type === 'settings_update') {
-                        applySettings(data.settings);
+        function formatTime(totalSeconds) {
+            const s = Math.abs(totalSeconds);
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // Wrap loadDesign to re-init
+        const originalLoadDesign = window.loadDesign;
+        // Wait, loadDesign is defined above in local scope in previous files? 
+        // No, it is defined in <script> block in boards.html.
+        // Ideally we inject into it, but since I am replacing the end of file...
+        // I can just call initPenaltyContainers inside the interval or ensure it runs after load.
+
+        // Quick fix: Override the one from scope if possible or just rely on interval?
+        // loadDesign is async.
+
+        // Let's hook into the global scope if possible, or just check every render.
+        // Since renderPenalties is called on timer tick (100ms), checking Dom existence there is fine.
+
+        // However, if design changes, we need to reset initialized flag.
+        // The design parameter is on URL, so design doesn't change without reload.
+        // EXCEPT "Custom" mode updates innerHTML locally.
+        // Ideally we check if container is still valid.
+
+        // Start
+        loadDesign(); // Defined in previous script block
+        setInterval(fetchGameData, FETCH_INTERVAL);
+
+        // --- PEERJS CLIENT (Remote Sync) ---
+        const syncId = getParam('sync_id');
+        const syncPwd = getParam('sync_pwd');
+
+        if (syncId) {
+            // Cleanup old status div if it exists from previous versions
+            const oldStatus = document.getElementById('connectionStatus');
+            if (oldStatus) oldStatus.remove();
+
+            let peer = null;
+            let activeConn = null;
+            let reconnectTimeout = null;
+
+            function updateStatus(state, msg) {
+                const indicators = document.querySelectorAll('.dev-connection-indicator');
+
+                indicators.forEach(el => {
+                    // Ensure base structure
+                    if (!el.querySelector('.dot')) {
+                        el.innerHTML = '<div class="dot"></div><span class="text"></span>';
+                    }
+
+                    // Reset and apply state
+                    el.classList.remove('connected', 'disconnected', 'connecting');
+                    el.classList.add('visible', state);
+
+                    const textEl = el.querySelector('.text');
+                    if (textEl) textEl.innerText = msg;
+
+                    el.style.opacity = '1';
+                    if (state === 'connected') {
+                        // Start fade out timer
+                        setTimeout(() => {
+                            if (el.classList.contains('connected')) {
+                                el.style.opacity = '0.3';
+                            }
+                        }, 5000);
                     }
                 });
-                
-                conn.on('close', () => {
-                     console.log("Connection lost. Retrying...");
-                     updateStatus('disconnected', 'Verbindung verloren - Reconnect...');
-                     activeConn = null;
-                     reconnectTimeout = setTimeout(connectToHost, 3000);
+            }
+
+            function connectToHost() {
+                if (reconnectTimeout) clearTimeout(reconnectTimeout);
+
+                updateStatus('connecting', 'Verbinde zu Host...');
+
+                if (peer) peer.destroy();
+
+                peer = new Peer(null, { debug: 1 });
+
+                peer.on('open', (id) => {
+                    console.log("Peer opened with ID:", id);
+                    const conn = peer.connect(syncId, {
+                        reliable: true
+                    });
+
+                    conn.on('open', () => {
+                        console.log("Connected to Host. Authenticating...");
+                        updateStatus('connected', 'Verbunden');
+                        activeConn = conn;
+                        conn.send({ type: 'auth', password: syncPwd });
+                    });
+
+                    conn.on('data', (data) => {
+                        if (data.type === 'timer_update') {
+                            updateTimerDisplay(data);
+                            if (data.penalties) renderPenalties(data.penalties);
+                            else renderPenalties([]);
+                        } else if (data.type === 'settings_update') {
+                            applySettings(data.settings);
+                        }
+                    });
+
+                    conn.on('close', () => {
+                        console.log("Connection lost. Retrying...");
+                        updateStatus('disconnected', 'Verbindung verloren - Reconnect...');
+                        activeConn = null;
+                        reconnectTimeout = setTimeout(connectToHost, 3000);
+                    });
+
+                    conn.on('error', (err) => {
+                        console.error("Connection error:", err);
+                        updateStatus('disconnected', 'Verbindungsfehler');
+                        activeConn = null;
+                        reconnectTimeout = setTimeout(connectToHost, 5000);
+                    });
                 });
 
-                conn.on('error', (err) => {
-                    console.error("Connection error:", err);
-                    updateStatus('disconnected', 'Verbindungsfehler');
-                    activeConn = null;
-                    reconnectTimeout = setTimeout(connectToHost, 5000);
+                peer.on('error', (err) => {
+                    console.error("Peer error:", err);
+                    if (err.type === 'browser-incompatible') {
+                        updateStatus('disconnected', 'Browser inkompatibel');
+                    } else {
+                        reconnectTimeout = setTimeout(connectToHost, 5000);
+                    }
                 });
-            });
+            }
 
-            peer.on('error', (err) => {
-                console.error("Peer error:", err);
-                if (err.type === 'browser-incompatible') {
-                    updateStatus('disconnected', 'Browser inkompatibel');
-                } else {
-                    reconnectTimeout = setTimeout(connectToHost, 5000);
-                }
-            });
+            // Initial connect
+            connectToHost();
         }
 
-        // Initial connect
-        connectToHost();
-    }
-    
-    // Global exposure for debugging if needed
-    window.updatePenaltiesManually = renderPenalties;
+        // Global exposure for debugging if needed
+        window.updatePenaltiesManually = renderPenalties;
 
-    function applySettings(s) {
-        // ... (rest of the existing applySettings function)
-        let shouldReload = false;
-        const currentDesign = document.body.getAttribute('data-design');
-        
-        if (s.design && s.design !== currentDesign) {
-            shouldReload = true;
-        } else if (s.design === 'custom' && s.customCode) {
-            // Only reload if code changed
-            const lastCode = localStorage.getItem('lastCustomCode');
-            if (s.customCode !== lastCode) {
+        function applySettings(s) {
+            // ... (rest of the existing applySettings function)
+            let shouldReload = false;
+            const currentDesign = document.body.getAttribute('data-design');
+
+            if (s.design && s.design !== currentDesign) {
                 shouldReload = true;
-                localStorage.setItem('lastCustomCode', s.customCode);
-            }
-        }
-
-        if (shouldReload) {
-            console.log("Design/Code updating...", s.design);
-            loadContentForDesign(s.design, s.customCode);
-        }
-
-        // 2. Update Config Object
-        config.home.name = s.hn;
-        config.guest.name = s.gn;
-        
-        // 3. Apply Colors
-        const root = document.documentElement;
-        if(s.hp) root.style.setProperty('--home-primary', s.hp);
-        if(s.hs) root.style.setProperty('--home-secondary', s.hs);
-        if(s.ht) root.style.setProperty('--home-text', s.ht);
-        
-        if(s.gp) root.style.setProperty('--guest-primary', s.gp);
-        if(s.gs) root.style.setProperty('--guest-secondary', s.gs);
-        if(s.gt) root.style.setProperty('--guest-text', s.gt);
-
-        // 4. Update Game ID if changed
-        if (s.gameId && s.gameId !== gameId) {
-             console.log("Game ID changed to", s.gameId);
-             gameId = s.gameId;
-             fetchGameData();
-        }
-
-        // 5. Apply Text Immediately
-        if(s.hn) setTextIfChanged('name_home', s.hn);
-        if(s.gn) setTextIfChanged('name_away', s.gn);
-
-        // 6. Apply Scale
-        if(s.scale) {
-            config.scale = s.scale;
-            applyScaling(s.scale);
-        }
-    }
-    
-    async function loadContentForDesign(newDesign, customCodePayload) {
-        const container = document.getElementById('board-container');
-        document.body.setAttribute('data-design', newDesign);
-        
-        if (newDesign === 'custom') {
-            const code = customCodePayload || localStorage.getItem('scoreboardCustomCode');
-            if (code) {
-                 container.innerHTML = code;
-                 const scripts = container.getElementsByTagName("script");
-                 for(let i=0; i<scripts.length; i++) {
-                     try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
-                 }
-                 fetchGameData();
-            } else {
-                 container.innerHTML = '<div style="color:red; background:black; padding:10px;">Waiting for Custom Code...</div>';
-            }
-        } else {
-            try {
-                const response = await fetch(`designs/${newDesign}.html`);
-                if (!response.ok) throw new Error(`Design ${newDesign} not found`);
-                const html = await response.text();
-                container.innerHTML = html;
-                
-                const scripts = container.getElementsByTagName("script");
-                for(let i=0; i<scripts.length; i++) {
-                    try { eval(scripts[i].innerText); } catch(e) { console.error('Script error:', e); }
+            } else if (s.design === 'custom' && s.customCode) {
+                // Only reload if code changed
+                const lastCode = localStorage.getItem('lastCustomCode');
+                if (s.customCode !== lastCode) {
+                    shouldReload = true;
+                    localStorage.setItem('lastCustomCode', s.customCode);
                 }
+            }
+
+            if (shouldReload) {
+                console.log("Design/Code updating...", s.design);
+                loadContentForDesign(s.design, s.customCode);
+            }
+
+            // 2. Update Config Object
+            config.home.name = s.hn;
+            config.guest.name = s.gn;
+
+            // 3. Apply Colors
+            const root = document.documentElement;
+            if (s.hp) root.style.setProperty('--home-primary', s.hp);
+            if (s.hs) root.style.setProperty('--home-secondary', s.hs);
+            if (s.ht) root.style.setProperty('--home-text', s.ht);
+
+            if (s.gp) root.style.setProperty('--guest-primary', s.gp);
+            if (s.gs) root.style.setProperty('--guest-secondary', s.gs);
+            if (s.gt) root.style.setProperty('--guest-text', s.gt);
+
+            if (s.bgColor && s.bgAlpha !== undefined) {
+                let h = s.bgColor.startsWith('#') ? s.bgColor.substring(1) : s.bgColor;
+                let a = Math.round((s.bgAlpha / 100) * 255).toString(16);
+                if (a.length === 1) a = "0" + a;
+                root.style.setProperty('--bg-color', `#${h}${a}`);
+            }
+
+            // 4. Update Game ID if changed
+            if (s.gameId && s.gameId !== gameId) {
+                console.log("Game ID changed to", s.gameId);
+                gameId = s.gameId;
                 fetchGameData();
-            } catch (err) {
-                console.error(err);
+            }
+
+            // 5. Apply Text Immediately
+            if (s.hn) setTextIfChanged('name_home', s.hn);
+            if (s.gn) setTextIfChanged('name_away', s.gn);
+
+            // 6. Apply Scale
+            if (s.scale) {
+                config.scale = s.scale;
+                applyScaling(s.scale);
             }
         }
-    }
-</script>
+
+        async function loadContentForDesign(newDesign, customCodePayload) {
+            const container = document.getElementById('board-container');
+            document.body.setAttribute('data-design', newDesign);
+
+            if (newDesign === 'custom') {
+                const code = customCodePayload || localStorage.getItem('scoreboardCustomCode');
+                if (code) {
+                    container.innerHTML = code;
+                    const scripts = container.getElementsByTagName("script");
+                    for (let i = 0; i < scripts.length; i++) {
+                        try { eval(scripts[i].innerText); } catch (e) { console.error('Script error:', e); }
+                    }
+                    fetchGameData();
+                } else {
+                    container.innerHTML = '<div style="color:red; background:black; padding:10px;">Waiting for Custom Code...</div>';
+                }
+            } else {
+                try {
+                    const response = await fetch(`designs/${newDesign}.html`);
+                    if (!response.ok) throw new Error(`Design ${newDesign} not found`);
+                    const html = await response.text();
+                    container.innerHTML = html;
+
+                    const scripts = container.getElementsByTagName("script");
+                    for (let i = 0; i < scripts.length; i++) {
+                        try { eval(scripts[i].innerText); } catch (e) { console.error('Script error:', e); }
+                    }
+                    fetchGameData();
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+    </script>
 </body>
+
 </html>
