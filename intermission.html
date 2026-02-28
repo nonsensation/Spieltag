@@ -678,7 +678,7 @@
                         details += " (Penalty)";
                     } else if (e.assist && e.assist !== "0" && e.assist !== 0) {
                         const aName = getPlayerName(e.event_team, e.assist);
-                        playerSuffix = ` (${aName ? aName : '#' + e.assist})`;
+                        playerSuffix = ` (#${e.assist}${aName ? ' ' + aName : ''})`;
                     }
                 }
 
@@ -688,8 +688,8 @@
                         ${logo ? `<img src="${logo}" class="item-logo">` : ''}
                     </div>
                     <div class="event-main">
-                        <span>${type}${e.number ? ' (#' + e.number + ')' : ''}${details}</span>
-                        ${(pName || playerSuffix) ? `<span class="player-name">${pName || ''}${playerSuffix}</span>` : ''}
+                        <span>${type}${details}</span>
+                        ${(pName || e.number || playerSuffix) ? `<span class="player-name">${e.number ? '#' + e.number + (pName ? ' ' : '') : ''}${pName || ''}${playerSuffix}</span>` : ''}
                     </div>
                     ${e.event_type === 'goal' ? `<div class="event-score">${e.home_goals}:${e.guest_goals}</div>` : ''}
                 </div>`;
@@ -740,7 +740,7 @@
                     sub += `<tr class="${cls}">
                         <td class="scorer-rank">${idx + 1}</td>
                         <td class="team-name">
-                            <span class="scorer-num">${num !== undefined && num !== null ? num : '-'}</span>
+                            <span class="scorer-num">${num !== undefined && num !== null ? '#' + num : '-'}</span>
                             ${s.first_name || ''} ${s.last_name || ''}
                         </td>
                         <td class="meta-val">${s.games || '-'}</td>
