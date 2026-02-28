@@ -495,6 +495,8 @@
         const gameId = urlParams.get('id');
         const isDev = urlParams.get('dev') === 'true';
         const cycleInterval = parseInt(urlParams.get('cycle')) * 1000 || 10000;
+        const timeoutParam = urlParams.get('timeout');
+        const intermissionTimeoutMs = timeoutParam !== null ? parseFloat(timeoutParam) * 60000 : 8 * 60000;
 
         const root = document.documentElement;
         const setCol = (p, val) => { if (val) root.style.setProperty(p, decodeURIComponent(val)); };
@@ -543,6 +545,9 @@
             await fetchMainData();
             startCycling();
             setInterval(fetchMainData, 30000);
+            setInterval(() => {
+                if (currentData) updateHeader(currentData);
+            }, 1000);
         }
 
         async function fetchPenaltyCodes() {
@@ -560,11 +565,16 @@
             if (!url) return '';
             return url.startsWith('/') ? 'https://saisonmanager.de' + url : url;
         }
+
+        let currentData = null;
+
         async function fetchMainData() {
             try {
                 const response = await fetch(`https://saisonmanager.de/api/v2/games/${gameId}.json`);
                 if (!response.ok) throw new Error("API Error");
                 const data = await response.json();
+
+                currentData = data;
 
                 homeTeamName = data.home_team_name;
                 guestTeamName = data.guest_team_name;
@@ -601,22 +611,65 @@
             } catch (e) { console.warn("League fetch failed", e); }
         }
 
+        let lastIngameStatus = null;
+        let statusStartTime = null;
+        let isIntermissionVisible = true;
+
         function updateHeader(data) {
             document.getElementById('gameTitle').innerText = `${homeTeamName} VS ${guestTeamName}`;
             const badge = document.getElementById('gameStatus');
             const status = data.ingame_status;
             const isFinished = data.game_status === 'match_record_closed' || data.ended;
-            const isActive = ['period1', 'period2', 'period3', 'extratime', 'penalty_shots'].includes(status) && !isFinished;
 
-            if (isActive && !isDev) {
-                document.getElementById('gameHeader').classList.add('hidden');
-                document.getElementById('activeView').classList.remove('hidden');
-                document.querySelector('.view-container').classList.add('hidden');
-                clearTimeout(cycleTimer);
+            const stateKey = status + (isDev ? '_dev' : '');
+
+            if (lastIngameStatus !== stateKey) {
+                lastIngameStatus = stateKey;
+                const now = Date.now();
+
+                if (isDev) {
+                    statusStartTime = now;
+                } else {
+                    const storedTime = localStorage.getItem(`statusStartTime_${gameId}_${stateKey}`);
+                    if (storedTime && (now - parseInt(storedTime)) < 12 * 60 * 60 * 1000) {
+                        statusStartTime = parseInt(storedTime);
+                    } else {
+                        statusStartTime = now;
+                        localStorage.setItem(`statusStartTime_${gameId}_${stateKey}`, statusStartTime);
+                    }
+                }
+            }
+
+            const isPause = ['pause1', 'pause2', 'pause3', 'pause_ps'].includes(status);
+
+            let showIntermission = false;
+
+            if (isDev) {
+                showIntermission = true;
+            } else if (!isFinished && isPause) {
+                showIntermission = true;
+            }
+
+            if (intermissionTimeoutMs > 0 && Date.now() - statusStartTime >= intermissionTimeoutMs) {
+                showIntermission = false;
+            }
+
+            if (!showIntermission) {
+                if (isIntermissionVisible) {
+                    isIntermissionVisible = false;
+                    document.getElementById('gameHeader').classList.add('hidden');
+                    document.getElementById('activeView').classList.remove('hidden');
+                    document.querySelector('.view-container').classList.add('hidden');
+                    clearTimeout(cycleTimer);
+                }
             } else {
-                document.getElementById('gameHeader').classList.remove('hidden');
-                document.getElementById('activeView').classList.add('hidden');
-                document.querySelector('.view-container').classList.remove('hidden');
+                if (!isIntermissionVisible) {
+                    isIntermissionVisible = true;
+                    document.getElementById('gameHeader').classList.remove('hidden');
+                    document.getElementById('activeView').classList.add('hidden');
+                    document.querySelector('.view-container').classList.remove('hidden');
+                    startCycling();
+                }
                 badge.classList.remove('hidden', 'status-active', 'status-intermission', 'status-finished');
                 badge.innerText = isFinished ? "BEENDET" : (data.current_period_title?.title?.toUpperCase() || "PAUSE");
                 badge.classList.add(isFinished ? 'status-finished' : 'status-intermission');
