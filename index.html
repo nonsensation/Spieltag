@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,35 +9,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f0f2f5; color: #333; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .container { 
-            display: flex; 
-            flex: 1; 
-            width: 100%; 
-            height: 100%; 
-            max-width: 100%; 
-            gap: 20px; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            background: #f0f2f5;
+            color: #333;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            gap: 20px;
             padding-bottom: 20px;
             box-sizing: border-box;
         }
 
         /* Preview Area: Takes up available space */
-        .preview { 
-            flex: 1; 
+        .preview {
+            flex: 1;
             background-color: #202020;
             background-image:
-              linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
-              linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
-              linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+                linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+                linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+                linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            border-radius: 8px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             flex-direction: column;
             position: relative;
             overflow: hidden;
@@ -47,26 +58,27 @@
             position: absolute;
             top: 10px;
             left: 20px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5);
             margin: 0;
             font-size: 1.2rem;
             z-index: 10;
         }
 
         /* Controls Sidebar: Resizable */
-        .controls { 
-            width: 340px; 
+        .controls {
+            width: 340px;
             min-width: 250px;
             max-width: 600px;
-            background: white; 
+            background: white;
             /* padding: 20px; Removed padding from container to allow accordion to be flush */
-            border-radius: 8px; 
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1); 
+            border-radius: 8px;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Important for scroll inside content */
+            overflow: hidden;
+            /* Important for scroll inside content */
         }
-        
+
         .controls-content {
             flex: 1;
             overflow-y: auto;
@@ -84,19 +96,28 @@
             transition: background 0.2s;
             z-index: 100;
         }
-        .resizer:hover, .resizer.active { background: #007bff; }
+
+        .resizer:hover,
+        .resizer.active {
+            background: #007bff;
+        }
+
         .resizer::after {
             content: "⋮";
             color: #999;
             font-size: 1.2em;
         }
-        .resizer:hover::after { color: white; }
+
+        .resizer:hover::after {
+            color: white;
+        }
 
         /* ACCORDION STYLES */
         .accordion-item {
             border-bottom: 1px solid #eee;
             margin-bottom: 0;
         }
+
         .accordion-header {
             padding: 15px;
             background: #f8f9fa;
@@ -109,44 +130,155 @@
             color: #444;
             transition: background 0.2s;
         }
-        .accordion-header:hover { background: #e9ecef; }
-        .accordion-header.active { 
-            background: #fff; 
-            color: #007bff; 
-            border-bottom: 1px solid #f0f0f0; 
+
+        .accordion-header:hover {
+            background: #e9ecef;
         }
+
+        .accordion-header.active {
+            background: #fff;
+            color: #007bff;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
         .accordion-content {
             display: none;
             padding: 15px;
             background: #fff;
         }
-        .accordion-header.active + .accordion-content { display: block; }
-        
-        .chevron { transition: transform 0.3s; }
-        .accordion-header.active .chevron { transform: rotate(180deg); }
 
-        h3 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85em; color: #555; }
-        input[type="text"], input[type="number"], input[type="range"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
-        
-        .color-row { display: flex; gap: 8px; align-items: center; }
-        input[type="color"] { border: none; width: 100%; height: 35px; cursor: pointer; background: none; padding: 0; }
-        
-        .section-title { font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 15px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 2px;}
+        .accordion-header.active+.accordion-content {
+            display: block;
+        }
 
-        button { background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 0.95em; width: 100%; margin-top: 5px; transition: background 0.2s; font-weight: 500;}
-        button:hover { background: #0056b3; }
-        button.secondary { background: #6c757d; }
-        button.secondary:hover { background: #5a6268; }
-        
-        iframe { border: none; width: 100%; flex: 1; height: 0; min-height: 0; background: transparent; }
-        
-        .loader { font-size: 0.8em; color: #666; font-style: italic; display: none; margin-top: 5px;}
-        
-        .url-output { margin-top: auto; padding-top: 20px; border-top: 2px solid #eee; }
-        .url-text { font-family: monospace; font-size: 0.8em; word-break: break-all; color: #555; background: #f8f9fa; padding: 5px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; max-height: 60px; overflow-y: auto; }
+        .chevron {
+            transition: transform 0.3s;
+        }
+
+        .accordion-header.active .chevron {
+            transform: rotate(180deg);
+        }
+
+        h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="range"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+
+        .color-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            border: none;
+            width: 100%;
+            height: 35px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        .section-title {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95em;
+            width: 100%;
+            margin-top: 5px;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
+            flex: 1;
+            height: 0;
+            min-height: 0;
+            background: transparent;
+        }
+
+        .loader {
+            font-size: 0.8em;
+            color: #666;
+            font-style: italic;
+            display: none;
+            margin-top: 5px;
+        }
+
+        .url-output {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .url-text {
+            font-family: monospace;
+            font-size: 0.8em;
+            word-break: break-all;
+            color: #555;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            max-height: 60px;
+            overflow-y: auto;
+        }
 
         #qrcode {
             margin-top: 15px;
@@ -157,42 +289,59 @@
             border-radius: 4px;
             border: 1px solid #eee;
             width: fit-content;
-            margin-left: auto; 
-            margin-right: auto; 
+            margin-left: auto;
+            margin-right: auto;
         }
+
         #qrcode img {
             display: block;
         }
 
         /* --- RESPONSIVE & UI IMPROVEMENTS --- */
-        
+
         /* Mobile Breakpoint */
         @media (max-width: 900px) {
-            .container { 
-                flex-direction: column; 
+            .container {
+                flex-direction: column;
             }
-            .resizer { display: none; }
-            .controls { 
-                width: 100% !important; /* Force full width on mobile */
+
+            .resizer {
+                display: none;
+            }
+
+            .controls {
+                width: 100% !important;
+                /* Force full width on mobile */
                 max-width: none;
                 height: auto;
                 min-height: auto;
-                flex: none; /* Don't flex */
+                flex: none;
+                /* Don't flex */
                 overflow: visible;
             }
-            .controls-content { overflow: visible; height: auto; }
-            .preview { 
-                min-height: 50vh; 
-                flex: none; /* Fixed height on mobile */
+
+            .controls-content {
+                overflow: visible;
+                height: auto;
+            }
+
+            .preview {
+                min-height: 50vh;
+                flex: none;
+                /* Fixed height on mobile */
             }
         }
 
         /* Input Touch Improvements */
-        input, select, button {
-            min-height: 40px; /* Touch target size */
-            font-size: 16px; /* Prevent zoom on iOS */
+        input,
+        select,
+        button {
+            min-height: 40px;
+            /* Touch target size */
+            font-size: 16px;
+            /* Prevent zoom on iOS */
         }
-        
+
         /* Timer Panel Revamp */
         .timer-panel {
             background: #111;
@@ -222,7 +371,12 @@
             align-items: center;
             gap: 15px;
         }
-        @media (max-width: 700px) { .timer-section-left { justify-content: center; } }
+
+        @media (max-width: 700px) {
+            .timer-section-left {
+                justify-content: center;
+            }
+        }
 
         .timer-display {
             font-family: 'Courier New', monospace;
@@ -234,7 +388,8 @@
             border-radius: 6px;
             border: 1px solid #333;
             line-height: 1;
-            cursor: pointer; /* Click to edit? Maybe later */
+            cursor: pointer;
+            /* Click to edit? Maybe later */
         }
 
         .vis-toggle {
@@ -247,9 +402,22 @@
             font-size: 0.75em;
             color: #fff;
         }
-        .vis-toggle:hover { opacity: 0.8; }
-        .vis-toggle.active { opacity: 1; color: #4cd964; text-shadow: 0 0 10px rgba(76, 217, 100, 0.5); }
-        .vis-toggle i { font-size: 1.8em; margin-bottom: 2px; font-style: normal; }
+
+        .vis-toggle:hover {
+            opacity: 0.8;
+        }
+
+        .vis-toggle.active {
+            opacity: 1;
+            color: #4cd964;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.5);
+        }
+
+        .vis-toggle i {
+            font-size: 1.8em;
+            margin-bottom: 2px;
+            font-style: normal;
+        }
 
         /* Center: Main Controls */
         .timer-section-center {
@@ -264,32 +432,52 @@
             border-radius: 50%;
             border: none;
             cursor: pointer;
-            font-size: 6rem; /* Controls SVG size via em */
+            font-size: 6rem;
+            /* Controls SVG size via em */
             padding: 0;
             margin: 10px;
-            color: white; /* For currentColor fill */
-            
+            color: white;
+            /* For currentColor fill */
+
             /* Flexbox Centering */
             display: flex;
             align-items: center;
             justify-content: center;
-            
+
             transition: transform 0.1s, background 0.2s;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
+
         .btn-main-control svg {
             width: 1em;
             height: 1em;
             fill: currentColor;
             display: block;
         }
-        .btn-main-control:active { transform: scale(0.95); }
-        
-        .btn-play { background: #34c759; color: white; }
-        .btn-play:hover { background: #30b753; box-shadow: 0 0 20px rgba(52, 199, 89, 0.4); }
-        
-        .btn-stop { background: #ff3b30; color: white; }
-        .btn-stop:hover { background: #e0362b; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); }
+
+        .btn-main-control:active {
+            transform: scale(0.95);
+        }
+
+        .btn-play {
+            background: #34c759;
+            color: white;
+        }
+
+        .btn-play:hover {
+            background: #30b753;
+            box-shadow: 0 0 20px rgba(52, 199, 89, 0.4);
+        }
+
+        .btn-stop {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #e0362b;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+        }
 
         /* Right: Adjustments */
         .timer-section-right {
@@ -298,7 +486,12 @@
             gap: 8px;
             align-items: flex-end;
         }
-        @media (max-width: 700px) { .timer-section-right { align-items: center; } }
+
+        @media (max-width: 700px) {
+            .timer-section-right {
+                align-items: center;
+            }
+        }
 
         .timer-adjust-row {
             display: flex;
@@ -316,14 +509,17 @@
             width: 45px;
             transition: background 0.2s;
         }
-        .btn-adj:hover { background: #444; }
+
+        .btn-adj:hover {
+            background: #444;
+        }
 
         .timer-settings-row {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-        
+
         .timer-select {
             background: #222;
             color: white;
@@ -342,1464 +538,1606 @@
             cursor: pointer;
             font-size: 0.8em;
         }
-        .btn-reset:hover { border-color: #888; color: #fff; }
+
+        .btn-reset:hover {
+            border-color: #888;
+            color: #fff;
+        }
 
         /* Hide logic helpers */
-        .hidden { display: none !important; }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <!-- PREVIEW AREA -->
-    <div class="preview">
-        <h2>Live Vorschau</h2>
-        <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
-        
-        <!-- Penalties Overlay (Controller View) -->
-        <div id="ctlPenaltiesHome" style="position:absolute; top:50px; left:20px; display:flex; flex-direction:column; gap:5px; z-index:20;"></div>
-        <div id="ctlPenaltiesGuest" style="position:absolute; top:50px; right:20px; display:flex; flex-direction:column; gap:5px; z-index:20; align-items:flex-end;"></div>
+    <div class="container">
+        <!-- PREVIEW AREA -->
+        <div class="preview">
+            <h2>Live Vorschau</h2>
+            <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
 
-        <!-- Timer Controls - Added as overlay/panel under preview -->
-        <div class="timer-panel">
-            
-            <!-- LEFT: Display & Vis -->
-            <div class="timer-section-left">
-                <div id="visToggle" class="vis-toggle" onclick="toggleTimerVis()" title="Klicke zum Anzeigen auf dem Scoreboard">
-                    <i>👁️</i>
-                    <span>LIVE</span>
-                </div>
-                <div class="timer-display" id="timerValue" onclick="toggleTimerVis()">20:00</div>
+            <!-- Penalties Overlay (Controller View) -->
+            <div id="ctlPenaltiesHome"
+                style="position:absolute; top:50px; left:20px; display:flex; flex-direction:column; gap:5px; z-index:20;">
+            </div>
+            <div id="ctlPenaltiesGuest"
+                style="position:absolute; top:50px; right:20px; display:flex; flex-direction:column; gap:5px; z-index:20; align-items:flex-end;">
             </div>
 
-            <!-- CENTER: Big Play Button -->
-            <div class="timer-section-center">
-                <button id="btnStart" class="btn-main-control btn-play" onclick="startTimer()" title="Start">
-                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </button>
-                <button id="btnStop" class="btn-main-control btn-stop hidden" onclick="stopTimer()" title="Stop">
-                    <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-            </div>
+            <!-- Timer Controls - Added as overlay/panel under preview -->
+            <div class="timer-panel">
 
-            <!-- RIGHT: Adjustments & Settings -->
-            <div class="timer-section-right">
-                <div class="timer-adjust-row">
-                     <button class="btn-adj" onclick="adjustTime(-60)">-1m</button>
-                     <button class="btn-adj" onclick="adjustTime(-10)">-10s</button>
-                     <button class="btn-adj" onclick="adjustTime(10)">+10s</button>
-                     <button class="btn-adj" onclick="adjustTime(60)">+1m</button>
+                <!-- LEFT: Display & Vis -->
+                <div class="timer-section-left">
+                    <div id="visToggle" class="vis-toggle" onclick="toggleTimerVis()"
+                        title="Klicke zum Anzeigen auf dem Scoreboard">
+                        <i>👁️</i>
+                        <span>LIVE</span>
+                    </div>
+                    <div class="timer-display" id="timerValue" onclick="toggleTimerVis()">20:00</div>
                 </div>
-                
-                <div class="timer-settings-row">
-                    <button class="btn-reset" onclick="resetTimer()">RESET</button>
-                    
-                    <select id="timerPreset" class="timer-select" onchange="applyPreset()">
-                        <option value="20">20 Min (Spiel)</option>
-                        <option value="15">15 Min (Spiel)</option>
-                        <option value="10">10 Min (Pause)</option>
-                        <option value="custom">Custom</option>
-                    </select>
 
-                    <button id="btnAddPenalty" class="btn-reset" onclick="openPenaltyModal()" style="border-color: #ff3b30; color: #ff3b30;">+ STRAFE</button>
+                <!-- CENTER: Big Play Button -->
+                <div class="timer-section-center">
+                    <button id="btnStart" class="btn-main-control btn-play" onclick="startTimer()" title="Start">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </button>
+                    <button id="btnStop" class="btn-main-control btn-stop hidden" onclick="stopTimer()" title="Stop">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                        </svg>
+                    </button>
+                </div>
 
-                    <div style="font-size:0.8em; color:#888; display: flex; gap: 5px;">
-                        <label title="Abwärts"><input type="radio" name="tm_dir" value="-1" checked onchange="updateDirection()"> ▼</label>
-                        <label title="Aufwärts"><input type="radio" name="tm_dir" value="1" onchange="updateDirection()"> ▲</label>
+                <!-- RIGHT: Adjustments & Settings -->
+                <div class="timer-section-right">
+                    <div class="timer-adjust-row">
+                        <button class="btn-adj" onclick="adjustTime(-60)">-1m</button>
+                        <button class="btn-adj" onclick="adjustTime(-10)">-10s</button>
+                        <button class="btn-adj" onclick="adjustTime(10)">+10s</button>
+                        <button class="btn-adj" onclick="adjustTime(60)">+1m</button>
                     </div>
 
-                </div>
-                
-                <div id="customTimeInput" style="display:none; align-items: center; gap: 5px; margin-top: 5px;">
-                    <input type="number" id="customMin" value="20" style="width: 50px; padding: 5px; background: #333; color: white; border: 1px solid #555;" onchange="applyPreset()"> Min
+                    <div class="timer-settings-row">
+                        <button class="btn-reset" onclick="resetTimer()">RESET</button>
+
+                        <select id="timerPreset" class="timer-select" onchange="applyPreset()">
+                            <option value="20">20 Min (Spiel)</option>
+                            <option value="15">15 Min (Spiel)</option>
+                            <option value="10">10 Min (Pause)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+
+                        <button id="btnAddPenalty" class="btn-reset" onclick="openPenaltyModal()"
+                            style="border-color: #ff3b30; color: #ff3b30;">+ STRAFE</button>
+
+                        <div style="font-size:0.8em; color:#888; display: flex; gap: 5px;">
+                            <label title="Abwärts"><input type="radio" name="tm_dir" value="-1" checked
+                                    onchange="updateDirection()"> ▼</label>
+                            <label title="Aufwärts"><input type="radio" name="tm_dir" value="1"
+                                    onchange="updateDirection()"> ▲</label>
+                        </div>
+
+                    </div>
+
+                    <div id="customTimeInput" style="display:none; align-items: center; gap: 5px; margin-top: 5px;">
+                        <input type="number" id="customMin" value="20"
+                            style="width: 50px; padding: 5px; background: #333; color: white; border: 1px solid #555;"
+                            onchange="applyPreset()"> Min
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- RESIZER -->
-    <div class="resizer" id="dragMe"></div>
+        <!-- RESIZER -->
+        <div class="resizer" id="dragMe"></div>
 
-    <!-- SIDEBAR CONTROLS -->
-    <div class="controls" id="sidebar">
-        <div class="controls-content">
-            <h3 style="margin-bottom: 20px;">Generator Einstellungen</h3>
-            
-            <!-- GROUP 1: MAIN -->
-            <div class="accordion-item">
-                <div class="accordion-header active" onclick="toggleAccordion(this)">
-                    <span>Allgemein</span>
-                    <span class="chevron">▼</span>
-                </div>
-                <div class="accordion-content" style="display:block;">
-                    <div class="form-group">
-                        <label>Design Stil</label>
-                        <select id="designStyle" onchange="generate()">
-                            <option value="default">Standard (Original)</option>
-                            <!-- Dynamically populated -->
-                            <option value="custom">Eigener Code</option>
-                        </select>
+        <!-- SIDEBAR CONTROLS -->
+        <div class="controls" id="sidebar">
+            <div class="controls-content">
+                <h3 style="margin-bottom: 20px;">Generator Einstellungen</h3>
+
+                <!-- GROUP 1: MAIN -->
+                <div class="accordion-item">
+                    <div class="accordion-header active" onclick="toggleAccordion(this)">
+                        <span>Allgemein</span>
+                        <span class="chevron">▼</span>
                     </div>
-
-                    <div id="customCodeTrigger" style="display:none; margin-bottom: 20px;">
-                         <button type="button" onclick="openEditor()" style="background:#28a745; width:100%;">Code Editor öffnen</button>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Spiel ID (saisonmanager.de)</label>
-                        <div style="display:flex; gap:5px;">
-                            <input type="number" id="gameId" value="42941" placeholder="42941" oninput="fetchGameDetails()">
-                            <button type="button" onclick="fetchGameDetails()" style="width: auto; margin:0; padding: 0 10px;">Laden</button>
+                    <div class="accordion-content" style="display:block;">
+                        <div class="form-group">
+                            <label>Design Stil</label>
+                            <select id="designStyle" onchange="generate()">
+                                <option value="default">Standard (Original)</option>
+                                <!-- Dynamically populated -->
+                                <option value="custom">Eigener Code</option>
+                            </select>
                         </div>
-                        <div class="loader" id="loader">...</div>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Skalierung: <span id="scaleValue">1.0</span>x</label>
-                        <input type="range" id="scale" min="0.1" max="3.0" step="0.05" value="1.0" oninput="document.getElementById('scaleValue').innerText = this.value; generate()">
-                        <div style="display:flex; gap:10px; margin-top:5px;">
-                            <div style="flex:1;">
-                                <label style="font-size:0.75em; color:#888;">Min</label>
-                                <input type="number" id="scaleMin" value="0.1" step="0.1" style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="font-size:0.75em; color:#888;">Max</label>
-                                <input type="number" id="scaleMax" value="3.0" step="0.1" style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
-                            </div>
+                        <div id="customCodeTrigger" style="display:none; margin-bottom: 20px;">
+                            <button type="button" onclick="openEditor()" style="background:#28a745; width:100%;">Code
+                                Editor öffnen</button>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- GROUP 2: SYNC & TIMER -->
-            <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <span>Remote & Timer</span>
-                    <span class="chevron">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="form-group">
-                         <div class="section-title" style="margin-top:0;">Remote Sync (Beta)</div>
-                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                             <input type="checkbox" id="syncEnabled" onchange="toggleSync()" style="width:auto; height:auto;">
-                             <label for="syncEnabled" style="display:inline; margin:0;">Aktivieren</label>
-                         </div>
-                         
-                         <div id="syncConfig" style="display:none;">
-                              <label>Verbindungs-ID (Name)</label>
-                             <input type="text" id="syncId" placeholder="Zufällig" oninput="saveSettings(); generate()">
-                             <div style="font-size:0.75em; color:#888; margin-bottom:10px;">Ein fester Name hilft beim Wiederverbinden.</div>
-                             
-                             <label>Passwort</label>
-                             <input type="text" id="syncPassword" value="1234" oninput="saveSettings(); generate()">
-                             <div style="font-size:0.8em; color:#666; margin-top:5px;">
-                                 Status: <span id="syncStatus">Offline</span>
-                             </div>
-                             <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
-                                <div style="display:flex; align-items:center; gap:5px;">
-                                    <input type="checkbox" id="includeFullState" onchange="generate()" style="width:auto; height:auto;">
-                                    <label for="includeFullState" style="display:inline; margin:0; font-size:0.85em; color:#555;">Full Sync in QR</label>
+                        <div class="form-group">
+                            <label>Spiel ID (saisonmanager.de)</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" id="gameId" value="42941" placeholder="42941"
+                                    oninput="fetchGameDetails()">
+                                <button type="button" onclick="fetchGameDetails()"
+                                    style="width: auto; margin:0; padding: 0 10px;">Laden</button>
+                            </div>
+                            <div class="loader" id="loader">...</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Skalierung: <span id="scaleValue">1.0</span>x</label>
+                            <input type="range" id="scale" min="0.1" max="3.0" step="0.05" value="1.0"
+                                oninput="document.getElementById('scaleValue').innerText = this.value; generate()">
+                            <div style="display:flex; gap:10px; margin-top:5px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:0.75em; color:#888;">Min</label>
+                                    <input type="number" id="scaleMin" value="0.1" step="0.1"
+                                        style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
                                 </div>
-                             </div>
-                         </div>
-                    </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.75em; color:#888;">Max</label>
+                                    <input type="number" id="scaleMax" value="3.0" step="0.1"
+                                        style="padding:4px; height:auto; min-height:auto;" oninput="updateScaleRange()">
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                         <label>Update Intervall (Sek)</label>
-                         <input type="number" id="updateInterval" value="10" min="1" onchange="generate()">
-                    </div>
+                        <div class="form-group"
+                            style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <input type="checkbox" id="intermissionEnabled" onchange="generate()"
+                                    style="width:auto; height:auto;">
+                                <label for="intermissionEnabled" style="display:inline; margin:0;">Intermission Board
+                                    aktivieren</label>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                <input type="checkbox" id="intermissionDevMode" onchange="generate()"
+                                    style="width:auto; height:auto;">
+                                <label for="intermissionDevMode"
+                                    style="display:inline; margin:0; font-size: 0.8em;">Dev-Mode (Immer
+                                    anzeigen)</label>
+                            </div>
+                            <div style="font-size:0.75em; color:#888; margin-top:5px;">Zeigt Ergebnisse/Tabelle in den
+                                Pausen.</div>
 
-                    <div class="form-group">
-                        <label>Strafen Tracking</label>
-                        <select id="penaltyMode" onchange="togglePenaltyMode()">
-                            <option value="manual">Manuell</option>
-                            <option value="none">Aus</option>
-                        </select>
+                            <div class="form-group" style="margin-top:10px;">
+                                <label style="font-size:0.8em;">Wechselintervall (Sekunden)</label>
+                                <input type="number" id="intermissionCycle" value="10" min="1" oninput="generate()"
+                                    style="padding:4px; height:auto; min-height:auto;">
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- GROUP 2: SYNC & TIMER -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>Remote & Timer</span>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <div class="section-title" style="margin-top:0;">Remote Sync (Beta)</div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                                <input type="checkbox" id="syncEnabled" onchange="toggleSync()"
+                                    style="width:auto; height:auto;">
+                                <label for="syncEnabled" style="display:inline; margin:0;">Aktivieren</label>
+                            </div>
+
+                            <div id="syncConfig" style="display:none;">
+                                <label>Verbindungs-ID (Name)</label>
+                                <input type="text" id="syncId" placeholder="Zufällig"
+                                    oninput="saveSettings(); generate()">
+                                <div style="font-size:0.75em; color:#888; margin-bottom:10px;">Ein fester Name hilft
+                                    beim Wiederverbinden.</div>
+
+                                <label>Passwort</label>
+                                <input type="text" id="syncPassword" value="1234" oninput="saveSettings(); generate()">
+                                <div style="font-size:0.8em; color:#666; margin-top:5px;">
+                                    Status: <span id="syncStatus">Offline</span>
+                                </div>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        <input type="checkbox" id="includeFullState" onchange="generate()"
+                                            style="width:auto; height:auto;">
+                                        <label for="includeFullState"
+                                            style="display:inline; margin:0; font-size:0.85em; color:#555;">Full Sync in
+                                            QR</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Update Intervall (Sek)</label>
+                            <input type="number" id="updateInterval" value="10" min="1" onchange="generate()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Strafen Tracking</label>
+                            <select id="penaltyMode" onchange="togglePenaltyMode()">
+                                <option value="manual">Manuell</option>
+                                <option value="none">Aus</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP 3: TEAMS -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>Teams & Farben</span>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="section-title" style="margin-top:0;">Heimteam</div>
+                        <div class="form-group">
+                            <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <img id="homeLogoPreview" src="" alt=""
+                                    style="display:none; height: 30px; object-fit: contain;">
+                                <input type="text" id="hn" placeholder="Name" oninput="generate()">
+                            </div>
+                            <div class="color-row">
+                                <input type="color" id="hp" value="#000000" title="Primär" oninput="generate()">
+                                <input type="color" id="hs" value="#1e713a" title="Sekundär" oninput="generate()">
+                                <input type="color" id="ht" value="#ffffff" title="Text" oninput="generate()">
+                            </div>
+                        </div>
+
+                        <div class="section-title">Gastteam</div>
+                        <div class="form-group">
+                            <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <img id="guestLogoPreview" src="" alt=""
+                                    style="display:none; height: 30px; object-fit: contain;">
+                                <input type="text" id="gn" placeholder="Name" oninput="generate()">
+                            </div>
+                            <div class="color-row">
+                                <input type="color" id="gp" value="#ff0000" title="Primär" oninput="generate()">
+                                <input type="color" id="gs" value="#ffffff" title="Sekundär" oninput="generate()">
+                                <input type="color" id="gt" value="#000000" title="Text" oninput="generate()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP 4: EXPORT -->
+                <div class="accordion-item">
+                    <div class="accordion-header active" onclick="toggleAccordion(this)">
+                        <span>Ergebnis URL</span>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="accordion-content" style="display:block;">
+                        <div class="url-output" id="urlOutput"
+                            style="display:none; border-top:none; padding-top:0; margin-top:0;">
+                            <label style="font-size: 0.75em; color: #888;">Scoreboard URL</label>
+                            <div class="url-text" id="finalUrl"></div>
+
+                            <div id="intermissionUrlSection" style="display:none; margin-top: 10px;">
+                                <label style="font-size: 0.75em; color: #888;">Intermission URL</label>
+                                <div class="url-text" id="intermissionUrl"></div>
+                            </div>
+
+                            <button id="copyBtn" onclick="copyAndOpen()">Kopieren & Öffnen</button>
+                            <div id="qrcode" onclick="openQrModal()" title="Großansicht" style="cursor:pointer;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center;">
+                    <a href="#" onclick="openAboutModal()"
+                        style="color: #666; text-decoration: none; font-size: 0.85em;">Über & Datenschutz</a>
+                </footer>
             </div>
-            
-            <!-- GROUP 3: TEAMS -->
-            <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <span>Teams & Farben</span>
-                    <span class="chevron">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="section-title" style="margin-top:0;">Heimteam</div>
-                    <div class="form-group">
-                        <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                            <img id="homeLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
-                            <input type="text" id="hn" placeholder="Name" oninput="generate()">
-                        </div>
-                        <div class="color-row">
-                            <input type="color" id="hp" value="#000000" title="Primär" oninput="generate()">
-                            <input type="color" id="hs" value="#1e713a" title="Sekundär" oninput="generate()">
-                            <input type="color" id="ht" value="#ffffff" title="Text" oninput="generate()">
-                        </div>
-                    </div>
-
-                    <div class="section-title">Gastteam</div>
-                    <div class="form-group">
-                        <div style="display:flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                            <img id="guestLogoPreview" src="" alt="" style="display:none; height: 30px; object-fit: contain;">
-                            <input type="text" id="gn" placeholder="Name" oninput="generate()">
-                        </div>
-                        <div class="color-row">
-                            <input type="color" id="gp" value="#ff0000" title="Primär" oninput="generate()">
-                            <input type="color" id="gs" value="#ffffff" title="Sekundär" oninput="generate()">
-                            <input type="color" id="gt" value="#000000" title="Text" oninput="generate()">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- GROUP 4: EXPORT -->
-            <div class="accordion-item">
-                <div class="accordion-header active" onclick="toggleAccordion(this)">
-                    <span>Ergebnis URL</span>
-                    <span class="chevron">▼</span>
-                </div>
-                <div class="accordion-content" style="display:block;">
-                    <div class="url-output" id="urlOutput" style="display:none; border-top:none; padding-top:0; margin-top:0;">
-                         <div class="url-text" id="finalUrl"></div>
-                         <button id="copyBtn" onclick="copyAndOpen()">Kopieren & Öffnen</button>
-                         <div id="qrcode" onclick="openQrModal()" title="Großansicht" style="cursor:pointer;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center;">
-                <a href="#" onclick="openAboutModal()" style="color: #666; text-decoration: none; font-size: 0.85em;">Über & Datenschutz</a>
-            </footer>
         </div>
     </div>
-</div>
 
     </div>
-</div>
+    </div>
 
-</div>
+    </div>
 
 
-            <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
-            <ul style="font-size:0.85em; padding-left:20px; color:#444;">
-                <li><code>--home-primary</code></li>
-                <li><code>--home-secondary</code></li>
-                <li><code>--home-text</code></li>
-                <li><code>--guest-primary</code></li>
-                <li><code>--guest-secondary</code></li>
-                <li><code>--guest-text</code></li>
+    <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
+    <ul style="font-size:0.85em; padding-left:20px; color:#444;">
+        <li><code>--home-primary</code></li>
+        <li><code>--home-secondary</code></li>
+        <li><code>--home-text</code></li>
+        <li><code>--guest-primary</code></li>
+        <li><code>--guest-secondary</code></li>
+        <li><code>--guest-text</code></li>
+    </ul>
+
+    <div style="margin-top:20px; padding:10px; background:#e9ecef; border-radius:4px; font-size:0.85em;">
+        <strong>Tipp:</strong> Nutze einen Container mit der Klasse <code>scoreboard</code>.
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Full Screen Editor Modal -->
+    <div id="editorModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; flex-direction:column;">
+        <!-- Modal Header -->
+        <div
+            style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#f8f9fa; border-bottom:1px solid #ddd;">
+            <h3 style="margin:0; border:none; padding:0;">Editor für eigenes Design</h3>
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="secondary" onclick="resetCustomCode()"
+                    style="width:auto; padding:8px 15px; margin:0; background:#dc3545;">Zurücksetzen</button>
+                <button type="button" onclick="closeEditor()" style="width:auto; padding:8px 15px; margin:0;">Speichern
+                    & Schließen</button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div style="display:flex; flex:1; overflow:hidden;">
+            <!-- Code Area -->
+            <div style="flex:1; display:flex; flex-direction:column; padding:10px; border-right:1px solid #ddd;">
+                <label style="margin-bottom:5px;">HTML & CSS</label>
+                <textarea id="customCode"
+                    style="flex:1; width:100%; border:1px solid #ccc; font-family:monospace; font-size:14px; padding:10px; white-space:pre; resize:none; box-sizing:border-box;"
+                    placeholder="Füge hier deinen HTML Scoreboard Code ein..." oninput="generate(true)"></textarea>
+            </div>
+
+            <!-- Info Sidebar -->
+            <div style="width:300px; padding:15px; overflow-y:auto; background:#fafafa;">
+                <h4 style="margin-top:0;">Verfügbare Variablen</h4>
+                <p style="font-size:0.9em; color:#666;">Benutze diese IDs für die Datenbindung:</p>
+                <ul style="font-size:0.85em; padding-left:20px; color:#444;">
+                    <li><code>period</code>: Aktueller Abschnitt</li>
+                    <li><code>time</code>: Spielzeit (meist unsichtbar)</li>
+                    <li><code>img_home</code>: Heim Logo (img src)</li>
+                    <li><code>name_home</code>: Heim Name</li>
+                    <li><code>score_home</code>: Heim Tore</li>
+                    <li><code>img_away</code>: Gast Logo (img src)</li>
+                    <li><code>name_away</code>: Gast Name</li>
+                    <li><code>score_away</code>: Gast Tore</li>
+                </ul>
+                <p style="font-size:0.9em; color:#666; margin-top:5px;">Strafen werden autom. in <code>.home</code> und
+                    <code>.away</code> Container eingefügt (Klasse: <code>.penalty-box</code>).
+                </p>
+                <p style="font-size:0.9em; color:#666; margin-top:5px;">Füge ein Element mit der Klasse
+                    <code>dev-connection-indicator</code> hinzu, um den Sync-Status anzuzeigen.
+                </p>
+
+                <h4 style="margin-top:15px;">CSS Variablen</h4>
+                <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
+                <ul style="font-size:0.85em; padding-left:20px; color:#444;">
+                    <li><code>--home-primary</code></li>
+                    <li><code>--home-secondary</code></li>
+                    <li><code>--home-text</code></li>
+                    <li><code>--guest-primary</code></li>
+                    <li><code>--guest-secondary</code></li>
+                    <li><code>--guest-text</code></li>
+                </ul>
+
+                <div style="margin-top:20px; padding:10px; background:#e9ecef; border-radius:4px; font-size:0.85em;">
+                    <strong>Tipp:</strong> Nutze einen Container mit der Klasse <code>scoreboard</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Penalty Modal -->
+    <div id="penaltyModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+        <div
+            style="background:white; padding:20px; border-radius:8px; width:95%; max-width:800px; display:flex; flex-direction:column; gap:15px; max-height:90vh;">
+            <h3 style="margin:0; text-align:center;">Strafe hinzufügen</h3>
+
+            <!-- Rosters Grid -->
+            <div style="display: flex; gap: 15px; flex: 1; overflow: hidden; min-height: 300px;">
+                <!-- Home Roster -->
+                <div
+                    style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                    <div id="phTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">HEIM
+                    </div>
+                    <div id="listHome" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
+                </div>
+
+                <!-- Guest Roster -->
+                <div
+                    style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                    <div id="pgTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">GAST
+                    </div>
+                    <div id="listGuest" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
+                </div>
+            </div>
+
+            <!-- Duration -->
+            <div>
+                <label>Dauer</label>
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                    <button type="button" class="secondary" style="width:auto; flex:1;"
+                        onclick="setPenaltyDuration(120)">2 Min</button>
+                    <button type="button" class="secondary" style="width:auto; flex:1;"
+                        onclick="setPenaltyDuration(240)">2+2 Min</button>
+                    <button type="button" class="secondary" style="width:auto; flex:1;"
+                        onclick="setPenaltyDuration(300)">5 Min</button>
+                    <button type="button" class="secondary" style="width:auto; flex:1;"
+                        onclick="setPenaltyDuration(600)">10 Min</button>
+                </div>
+                <div style="margin-top:5px; display:flex; align-items:center; gap:5px;">
+                    <input type="number" id="customPenMin" placeholder="Min" style="width:60px;">
+                    <button type="button" class="secondary" style="width:auto;"
+                        onclick="setPenaltyDuration(document.getElementById('customPenMin').value * 60)">Custom</button>
+                </div>
+            </div>
+
+            <input type="hidden" id="selectedPenaltyTeam">
+            <input type="hidden" id="selectedPenaltyPlayerName">
+            <input type="hidden" id="selectedPenaltyPlayerNumber">
+            <input type="hidden" id="selectedPenaltyDuration">
+
+            <div id="penaltySummary"
+                style="padding:10px; background:#f8f9fa; border-radius:4px; font-weight:bold; text-align:center; min-height: 1.2em;">
+                Bitte Spieler wählen...
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="secondary" onclick="closePenaltyModal()">Abbrechen</button>
+                <button onclick="commitPenalty()" style="background:#28a745;">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2100; justify-content:center; align-items:center;">
+        <div
+            style="background:white; padding:25px; border-radius:8px; max-width:400px; max-height:80vh; overflow-y:auto; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <span onclick="document.getElementById('aboutModal').style.display='none'"
+                style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.5em; color:#999;">&times;</span>
+
+            <h3 style="margin-top:0;">Über dieses Tool</h3>
+            <p style="font-size:0.9em; line-height:1.5;">
+                Dieser Scoreboard Generator ist ein Client-seitiges Tool. Es werden <strong>keine persönlichen
+                    Daten</strong> gesammelt oder an eigene Server gesendet.
+            </p>
+
+            <h4 style="margin-bottom:5px; font-size:1em;">Technologie</h4>
+            <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
+                <li>Einstellungen werden nur in Ihrem Browser gespeichert (<strong>LocalStorage</strong>).</li>
+                <li>Spieldaten werden direkt von der <strong>API von saisonmanager.de</strong> geladen.</li>
+                <li>Externe Ressourcen: Nur <strong>Google Fonts</strong> und <strong>Google APIs</strong> für
+                    Schriftarten.</li>
             </ul>
-            
-            <div style="margin-top:20px; padding:10px; background:#e9ecef; border-radius:4px; font-size:0.85em;">
-                <strong>Tipp:</strong> Nutze einen Container mit der Klasse <code>scoreboard</code>.
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Full Screen Editor Modal -->
-<div id="editorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; flex-direction:column;">
-    <!-- Modal Header -->
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#f8f9fa; border-bottom:1px solid #ddd;">
-        <h3 style="margin:0; border:none; padding:0;">Editor für eigenes Design</h3>
-        <div style="display:flex; gap:10px;">
-            <button type="button" class="secondary" onclick="resetCustomCode()" style="width:auto; padding:8px 15px; margin:0; background:#dc3545;">Zurücksetzen</button>
-            <button type="button" onclick="closeEditor()" style="width:auto; padding:8px 15px; margin:0;">Speichern & Schließen</button>
-        </div>
-    </div>
-    
-    <!-- Modal Body -->
-    <div style="display:flex; flex:1; overflow:hidden;">
-        <!-- Code Area -->
-        <div style="flex:1; display:flex; flex-direction:column; padding:10px; border-right:1px solid #ddd;">
-            <label style="margin-bottom:5px;">HTML & CSS</label>
-            <textarea id="customCode" style="flex:1; width:100%; border:1px solid #ccc; font-family:monospace; font-size:14px; padding:10px; white-space:pre; resize:none; box-sizing:border-box;" placeholder="Füge hier deinen HTML Scoreboard Code ein..." oninput="generate(true)"></textarea>
-        </div>
-        
-        <!-- Info Sidebar -->
-        <div style="width:300px; padding:15px; overflow-y:auto; background:#fafafa;">
-            <h4 style="margin-top:0;">Verfügbare Variablen</h4>
-            <p style="font-size:0.9em; color:#666;">Benutze diese IDs für die Datenbindung:</p>
-            <ul style="font-size:0.85em; padding-left:20px; color:#444;">
-                <li><code>period</code>: Aktueller Abschnitt</li>
-                <li><code>time</code>: Spielzeit (meist unsichtbar)</li>
-                <li><code>img_home</code>: Heim Logo (img src)</li>
-                <li><code>name_home</code>: Heim Name</li>
-                <li><code>score_home</code>: Heim Tore</li>
-                <li><code>img_away</code>: Gast Logo (img src)</li>
-                <li><code>name_away</code>: Gast Name</li>
-                <li><code>score_away</code>: Gast Tore</li>
+            <h4 style="margin-bottom:5px; font-size:1em;">Credits</h4>
+            <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
+                <li>QR Code Generator: <strong>qrcodejs</strong></li>
+                <li>Icons & Fonts: <strong>Google Fonts</strong></li>
             </ul>
-            <p style="font-size:0.9em; color:#666; margin-top:5px;">Strafen werden autom. in <code>.home</code> und <code>.away</code> Container eingefügt (Klasse: <code>.penalty-box</code>).</p>
-            <p style="font-size:0.9em; color:#666; margin-top:5px;">Füge ein Element mit der Klasse <code>dev-connection-indicator</code> hinzu, um den Sync-Status anzuzeigen.</p>
 
-            <h4 style="margin-top:15px;">CSS Variablen</h4>
-            <p style="font-size:0.9em; color:#666;">Benutze <code>var(--name)</code> für Farben:</p>
-            <ul style="font-size:0.85em; padding-left:20px; color:#444;">
-                <li><code>--home-primary</code></li>
-                <li><code>--home-secondary</code></li>
-                <li><code>--home-text</code></li>
-                <li><code>--guest-primary</code></li>
-                <li><code>--guest-secondary</code></li>
-                <li><code>--guest-text</code></li>
-            </ul>
-            
-            <div style="margin-top:20px; padding:10px; background:#e9ecef; border-radius:4px; font-size:0.85em;">
-                <strong>Tipp:</strong> Nutze einen Container mit der Klasse <code>scoreboard</code>.
+            <div style="margin-top:20px; font-size:0.8em; text-align:center; color:#888;">
+                <a href="https://github.com/nonsensation/Spieltag" target="_blank"
+                    style="color:#007bff; text-decoration:none;">GitHub Repository</a>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Penalty Modal -->
-<div id="penaltyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:8px; width:95%; max-width:800px; display:flex; flex-direction:column; gap:15px; max-height:90vh;">
-        <h3 style="margin:0; text-align:center;">Strafe hinzufügen</h3>
-        
-        <!-- Rosters Grid -->
-        <div style="display: flex; gap: 15px; flex: 1; overflow: hidden; min-height: 300px;">
-            <!-- Home Roster -->
-            <div style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
-                <div id="phTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">HEIM</div>
-                <div id="listHome" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
-            </div>
-
-            <!-- Guest Roster -->
-            <div style="flex:1; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
-                <div id="pgTitle" style="padding:10px; font-weight:bold; background:#eee; text-align:center;">GAST</div>
-                <div id="listGuest" style="flex:1; overflow-y:auto; background:#f9f9f9;"></div>
-            </div>
-        </div>
-
-        <!-- Duration -->
-        <div>
-            <label>Dauer</label>
-            <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                <button type="button" class="secondary" style="width:auto; flex:1;" onclick="setPenaltyDuration(120)">2 Min</button>
-                <button type="button" class="secondary" style="width:auto; flex:1;" onclick="setPenaltyDuration(240)">2+2 Min</button>
-                <button type="button" class="secondary" style="width:auto; flex:1;" onclick="setPenaltyDuration(300)">5 Min</button>
-                <button type="button" class="secondary" style="width:auto; flex:1;" onclick="setPenaltyDuration(600)">10 Min</button>
-            </div>
-            <div style="margin-top:5px; display:flex; align-items:center; gap:5px;">
-                 <input type="number" id="customPenMin" placeholder="Min" style="width:60px;">
-                 <button type="button" class="secondary" style="width:auto;" onclick="setPenaltyDuration(document.getElementById('customPenMin').value * 60)">Custom</button>
-            </div>
-        </div>
-        
-        <input type="hidden" id="selectedPenaltyTeam">
-        <input type="hidden" id="selectedPenaltyPlayerName">
-        <input type="hidden" id="selectedPenaltyPlayerNumber">
-        <input type="hidden" id="selectedPenaltyDuration">
-        
-        <div id="penaltySummary" style="padding:10px; background:#f8f9fa; border-radius:4px; font-weight:bold; text-align:center; min-height: 1.2em;">
-            Bitte Spieler wählen...
-        </div>
-
-        <div style="display:flex; gap:10px;">
-            <button class="secondary" onclick="closePenaltyModal()">Abbrechen</button>
-            <button onclick="commitPenalty()" style="background:#28a745;">Hinzufügen</button>
+    <!-- QR Modal -->
+    <div id="qrModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;"
+        onclick="this.style.display='none'">
+        <div style="background:white; padding:40px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);"
+            onclick="event.stopPropagation()">
+            <h2 style="margin:0; border:none; color: #333;">Scoreboard Fernsteuerung</h2>
+            <div id="qrLarge" style="padding: 10px; background: white; border: 1px solid #eee;"></div>
+            <p style="font-size:1em; color:#666; max-width:350px; text-align:center; margin: 0;">Scan diesen Code, um
+                das Scoreboard auf einem anderen Gerät (Tablet/Handy) zu öffnen und zu steuern.</p>
+            <button onclick="document.getElementById('qrModal').style.display='none'"
+                style="width: auto; padding: 12px 40px; background: #007bff; color: white; border-radius: 8px; font-weight: bold;">Verstanden</button>
         </div>
     </div>
-</div>
 
-<div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2100; justify-content:center; align-items:center;">
-    <div style="background:white; padding:25px; border-radius:8px; max-width:400px; max-height:80vh; overflow-y:auto; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-        <span onclick="document.getElementById('aboutModal').style.display='none'" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.5em; color:#999;">&times;</span>
-        
-        <h3 style="margin-top:0;">Über dieses Tool</h3>
-        <p style="font-size:0.9em; line-height:1.5;">
-            Dieser Scoreboard Generator ist ein Client-seitiges Tool. Es werden <strong>keine persönlichen Daten</strong> gesammelt oder an eigene Server gesendet.
-        </p>
-        
-        <h4 style="margin-bottom:5px; font-size:1em;">Technologie</h4>
-        <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
-            <li>Einstellungen werden nur in Ihrem Browser gespeichert (<strong>LocalStorage</strong>).</li>
-            <li>Spieldaten werden direkt von der <strong>API von saisonmanager.de</strong> geladen.</li>
-            <li>Externe Ressourcen: Nur <strong>Google Fonts</strong> und <strong>Google APIs</strong> für Schriftarten.</li>
-        </ul>
+    <script>
+        const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
+        let gameDataFull = null;
+        let DEFAULT_CODE = ""; // Dynamic Load
 
-        <h4 style="margin-bottom:5px; font-size:1em;">Credits</h4>
-        <ul style="font-size:0.9em; padding-left:20px; margin-top:5px; color:#555;">
-            <li>QR Code Generator: <strong>qrcodejs</strong></li>
-            <li>Icons & Fonts: <strong>Google Fonts</strong></li>
-        </ul>
-        
-        <div style="margin-top:20px; font-size:0.8em; text-align:center; color:#888;">
-            <a href="https://github.com/nonsensation/Spieltag" target="_blank" style="color:#007bff; text-decoration:none;">GitHub Repository</a>
-        </div>
-    </div>
-</div>
-
-<!-- QR Modal -->
-<div id="qrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;" onclick="this.style.display='none'">
-    <div style="background:white; padding:40px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
-        <h2 style="margin:0; border:none; color: #333;">Scoreboard Fernsteuerung</h2>
-        <div id="qrLarge" style="padding: 10px; background: white; border: 1px solid #eee;"></div>
-        <p style="font-size:1em; color:#666; max-width:350px; text-align:center; margin: 0;">Scan diesen Code, um das Scoreboard auf einem anderen Gerät (Tablet/Handy) zu öffnen und zu steuern.</p>
-        <button onclick="document.getElementById('qrModal').style.display='none'" style="width: auto; padding: 12px 40px; background: #007bff; color: white; border-radius: 8px; font-weight: bold;">Verstanden</button>
-    </div>
-</div>
-
-<script>
-    const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
-    let gameDataFull = null;
-    let DEFAULT_CODE = ""; // Dynamic Load
-
-    function openAboutModal() {
-        document.getElementById('aboutModal').style.display = 'flex';
-    }
-
-    async function fetchGameDetails() {
-        const id = document.getElementById('gameId').value;
-        const loader = document.getElementById('loader');
-        loader.style.display = 'block';
-        loader.innerText = 'Laden...';
-
-        try {
-            const res = await fetch(`https://saisonmanager.de/api/v2/games/${id}.json`);
-            if(!res.ok) throw new Error('Spiel nicht gefunden');
-            const data = await res.json();
-            gameDataFull = data;
-            
-            if(data.home_team_name) document.getElementById('hn').placeholder = `${data.home_team_name}`;
-            if(data.guest_team_name) document.getElementById('gn').placeholder = `${data.guest_team_name}`;
-            
-            loader.innerText = `Gefunden: ${data.home_team_name} vs ${data.guest_team_name}`;
-            loader.style.color = 'green';
-            
-            generate();
-
-            const fixLogoUrl = (url) => {
-                if (!url) return '';
-                if (url.startsWith('/')) return 'https://saisonmanager.de' + url;
-                return url;
-            };
-
-            if (data.home_team_logo) {
-                const img = document.getElementById('homeLogoPreview');
-                img.src = fixLogoUrl(data.home_team_logo);
-                img.style.display = 'block';
-            }
-            if (data.guest_team_logo) {
-                const img = document.getElementById('guestLogoPreview');
-                img.src = fixLogoUrl(data.guest_team_logo);
-                img.style.display = 'block';
-            }
-
-        } catch (e) {
-            loader.innerText = e.message;
-            loader.style.color = 'red';
-        }
-    }
-
-
-
-    function openEditor() {
-        document.getElementById('editorModal').style.display = 'flex';
-        // Ensure the editor has content
-        if(!document.getElementById('customCode').value) {
-            const stored = localStorage.getItem('scoreboardCustomCode');
-            document.getElementById('customCode').value = stored || DEFAULT_CODE;
-        }
-    }
-
-    function closeEditor() {
-        document.getElementById('editorModal').style.display = 'none';
-        generate(); // Final generate on close
-    }
-
-    async function resetCustomCode() {
-        if (!confirm("Möchten Sie den Code wirklich auf den Standard zurücksetzen? Ihre Änderungen gehen verloren.")) return;
-        
-        try {
-            const codeResp = await fetch('designs/default.html');
-            if(codeResp.ok) {
-                DEFAULT_CODE = await codeResp.text();
-            }
-        } catch(e) { console.error("Could not refresh default.html"); }
-
-        document.getElementById('customCode').value = DEFAULT_CODE;
-        generate();
-    }
-
-    function updateScaleRange() {
-        const slider = document.getElementById('scale');
-        const minIdx = document.getElementById('scaleMin');
-        const maxIdx = document.getElementById('scaleMax');
-        
-        slider.min = minIdx.value || 0.1;
-        slider.max = maxIdx.value || 3.0;
-        
-        // Ensure current value is within bounds
-        if (parseFloat(slider.value) < parseFloat(slider.min)) slider.value = slider.min;
-        if (parseFloat(slider.value) > parseFloat(slider.max)) slider.value = slider.max;
-        
-        document.getElementById('scaleValue').innerText = slider.value;
-        generate();
-    }
-
-    let debounceTimer;
-    function generate() {
-        // Immediate UI updates
-        const design = document.getElementById('designStyle').value;
-        const trigger = document.getElementById('customCodeTrigger');
-        if(trigger) {
-            trigger.style.display = (design === 'custom') ? 'block' : 'none';
-        }
-    
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            performGenerate();
-        }, 500);
-    }
-
-    function performGenerate() {
-        saveSettings();
-        
-        const settings = getSettingsFromDOM();
-
-        // Broadcast if Sync is active
-        if (settings.syncEnabled && currentPeerId) {
-            broadcastSettings(settings);
-        }
-        
-        // Restore Custom Button Visibility (was accidentally pruned)
-        const customTrigger = document.getElementById('customCodeTrigger');
-        if (settings.design === 'custom') {
-            customTrigger.style.display = 'block';
-            let code = document.getElementById('customCode').value;
-            if(!code) {
-                 code = DEFAULT_CODE;
-                 document.getElementById('customCode').value = code;
-            }
-            localStorage.setItem('scoreboardCustomCode', code);
-        } else {
-            customTrigger.style.display = 'none';
+        function openAboutModal() {
+            document.getElementById('aboutModal').style.display = 'flex';
         }
 
-        const params = new URLSearchParams();
-        params.append('id', settings.gameId);
+        async function fetchGameDetails() {
+            const id = document.getElementById('gameId').value;
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+            loader.innerText = 'Laden...';
 
-        // CONDITIONAL URL GENERATION
-        // Logic:
-        // 1. Always ID
-        // 2. If Sync ON:
-        //    - Add Sync Params
-        //    - If FullState ON: Add All Params
-        //    - Else: Minimal
-        // 3. If Sync OFF: Add All Params
-
-        if (settings.syncEnabled && currentPeerId) {
-             params.append('sync_id', currentPeerId);
-             params.append('sync_pwd', settings.syncPassword);
-             
-             if (document.getElementById('includeFullState').checked) {
-                 appendAllParams(params, settings);
-             }
-        } else {
-             appendAllParams(params, settings);
-        }
-
-        const finalString = `${BASE_URL}?${params.toString()}`;
-        
-        // Update Iframe (Always full state for local preview)
-        // Ensure local preview mirrors what we want
-        const localParams = new URLSearchParams();
-        localParams.append('id', settings.gameId);
-        localParams.append('design', settings.design);
-        // ... (We could construct full params for local iframe, 
-        // OR we can just use the DOM manipulation on the iframe too? 
-        // Actually the iframe is just a page. Let's keep using full params for the local iframe 
-        // so it doesn't need to connect via PeerJS to itself (which is complex).
-        localParams.append('hn', settings.hn);
-        localParams.append('hp', settings.hp);
-        localParams.append('hs', settings.hs);
-        localParams.append('ht', settings.ht);
-        localParams.append('gn', settings.gn);
-        localParams.append('gp', settings.gp);
-        localParams.append('gs', settings.gs);
-        localParams.append('gt', settings.gt);
-        localParams.append('scale', settings.scale);
-        
-        const newSrc = `boards.html?${localParams.toString()}`;
-        
-        const iframe = document.getElementById('previewFrame');
-        if (settings.design === 'custom') {
-            iframe.src = newSrc;
-             if(iframe.contentWindow && iframe.contentWindow.location.href.includes(newSrc)) {
-                iframe.contentWindow.location.reload();
-            } else {
-                iframe.src = newSrc;
-            }
-        } else {
-            if (!iframe.src.includes(localParams.toString())) {
-                 iframe.src = newSrc;
-            }
-        }
-        
-        document.getElementById('urlOutput').style.display = 'block';
-        document.getElementById('finalUrl').innerText = finalString;
-        
-        const btn = document.getElementById('copyBtn');
-        if(btn.innerText === "Kopiert!") btn.innerText = "Kopieren & Öffnen";
-
-        // Update QR
-        const qrContainer = document.getElementById('qrcode');
-        qrContainer.innerHTML = "";
-        new QRCode(qrContainer, {
-            text: finalString,
-            width: 128,
-            height: 128,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.L
-        });
-    }
-
-    function getSettingsFromDOM() {
-        const design = document.getElementById('designStyle').value;
-        let customCode = null;
-        if (design === 'custom') {
-            customCode = document.getElementById('customCode').value;
-        }
-
-        return {
-            gameId: document.getElementById('gameId').value,
-            design: design,
-            customCode: customCode,
-            interval: document.getElementById('updateInterval').value,
-            syncEnabled: document.getElementById('syncEnabled').checked,
-            syncId: document.getElementById('syncId').value,
-            syncPassword: document.getElementById('syncPassword').value,
-            hn: document.getElementById('hn').value,
-            hp: document.getElementById('hp').value,
-            hs: document.getElementById('hs').value,
-            ht: document.getElementById('ht').value,
-            gn: document.getElementById('gn').value,
-            gp: document.getElementById('gp').value,
-            gs: document.getElementById('gs').value,
-            gt: document.getElementById('gt').value,
-            scale: document.getElementById('scale').value
-        };
-    }
-
-    function appendAllParams(params, s) {
-        if(s.design !== 'default') params.append('design', s.design);
-        if(s.interval) params.append('interval', s.interval);
-        
-        if(s.hn) params.append('hn', s.hn);
-        if(s.hp !== '#000000') params.append('hp', s.hp); 
-        else params.append('hp', s.hp); 
-        
-        params.append('hs', s.hs);
-        params.append('ht', s.ht);
-
-        if(s.gn) params.append('gn', s.gn);
-        params.append('gp', s.gp);
-        params.append('gs', s.gs);
-        params.append('gt', s.gt);
-        if(s.scale !== '1.0' && s.scale !== '1') params.append('scale', s.scale);
-    }
-
-    function broadcastSettings(s) {
-        const payload = {
-            type: 'settings_update',
-            settings: s
-        };
-        broadcastState(payload);
-    }
-
-    function copyAndOpen() {
-        const urlText = document.getElementById('finalUrl').innerText;
-        
-        navigator.clipboard.writeText(urlText).then(() => {
-            const btn = document.getElementById('copyBtn');
-            const originalText = btn.innerText;
-            btn.innerText = "Kopiert!";
-            
-            // Open in new tab
-            window.open(urlText, '_blank');
-
-            setTimeout(() => {
-                btn.innerText = originalText;
-            }, 3000);
-        });
-    }
-
-    function saveSettings() {
-        const settings = {
-            gameId: document.getElementById('gameId').value,
-            interval: document.getElementById('updateInterval').value,
-            design: document.getElementById('designStyle').value,
-            hn: document.getElementById('hn').value,
-            hp: document.getElementById('hp').value,
-            hs: document.getElementById('hs').value,
-            ht: document.getElementById('ht').value,
-            gn: document.getElementById('gn').value,
-            gp: document.getElementById('gp').value,
-            gs: document.getElementById('gs').value,
-            gt: document.getElementById('gt').value,
-            scale: document.getElementById('scale').value,
-            scaleMin: document.getElementById('scaleMin').value,
-            scaleMax: document.getElementById('scaleMax').value,
-            syncEnabled: document.getElementById('syncEnabled').checked,
-            syncId: document.getElementById('syncId').value,
-            syncPassword: document.getElementById('syncPassword').value,
-            sidebarWidth: document.getElementById('sidebar').style.width
-        };
-        localStorage.setItem('scoreboardGenAttributes', JSON.stringify(settings));
-    }
-
-    function loadSettings() {
-        const stored = localStorage.getItem('scoreboardGenAttributes');
-        if (stored) {
             try {
-                const s = JSON.parse(stored);
-                if (s.gameId) document.getElementById('gameId').value = s.gameId;
-                if (s.interval) document.getElementById('updateInterval').value = s.interval;
-                if (s.design) document.getElementById('designStyle').value = s.design;
-                if (s.hn) document.getElementById('hn').value = s.hn;
-                if (s.hp) document.getElementById('hp').value = s.hp;
-                if (s.hs) document.getElementById('hs').value = s.hs;
-                if (s.ht) document.getElementById('ht').value = s.ht;
-                if (s.gn) document.getElementById('gn').value = s.gn;
-                if (s.gp) document.getElementById('gp').value = s.gp;
-                if (s.gs) document.getElementById('gs').value = s.gs;
-                if (s.gt) document.getElementById('gt').value = s.gt;
-                if (s.scale) {
-                    document.getElementById('scale').value = s.scale;
-                    document.getElementById('scaleValue').innerText = s.scale;
+                const res = await fetch(`https://saisonmanager.de/api/v2/games/${id}.json`);
+                if (!res.ok) throw new Error('Spiel nicht gefunden');
+                const data = await res.json();
+                gameDataFull = data;
+
+                if (data.home_team_name) document.getElementById('hn').placeholder = `${data.home_team_name}`;
+                if (data.guest_team_name) document.getElementById('gn').placeholder = `${data.guest_team_name}`;
+
+                loader.innerText = `Gefunden: ${data.home_team_name} vs ${data.guest_team_name}`;
+                loader.style.color = 'green';
+
+                generate();
+
+                const fixLogoUrl = (url) => {
+                    if (!url) return '';
+                    if (url.startsWith('/')) return 'https://saisonmanager.de' + url;
+                    return url;
+                };
+
+                if (data.home_team_logo) {
+                    const img = document.getElementById('homeLogoPreview');
+                    img.src = fixLogoUrl(data.home_team_logo);
+                    img.style.display = 'block';
                 }
-                if (s.scaleMin) document.getElementById('scaleMin').value = s.scaleMin;
-                if (s.scaleMax) document.getElementById('scaleMax').value = s.scaleMax;
-                if (document.getElementById('scaleMin').value || document.getElementById('scaleMax').value) {
-                    const slider = document.getElementById('scale');
-                    slider.min = document.getElementById('scaleMin').value || 0.1;
-                    slider.max = document.getElementById('scaleMax').value || 3.0;
+                if (data.guest_team_logo) {
+                    const img = document.getElementById('guestLogoPreview');
+                    img.src = fixLogoUrl(data.guest_team_logo);
+                    img.style.display = 'block';
                 }
-                if (s.syncEnabled !== undefined) document.getElementById('syncEnabled').checked = s.syncEnabled;
-                if (s.syncId) document.getElementById('syncId').value = s.syncId;
-                if (s.syncPassword) document.getElementById('syncPassword').value = s.syncPassword;
-                if (s.sidebarWidth) document.getElementById('sidebar').style.width = s.sidebarWidth;
-            } catch (e) { console.error(e); }
+
+            } catch (e) {
+                loader.innerText = e.message;
+                loader.style.color = 'red';
+            }
         }
-        
-        const customCode = localStorage.getItem('scoreboardCustomCode');
-        if (customCode) {
-            document.getElementById('customCode').value = customCode;
-        } else {
+
+
+
+        function openEditor() {
+            document.getElementById('editorModal').style.display = 'flex';
+            // Ensure the editor has content
+            if (!document.getElementById('customCode').value) {
+                const stored = localStorage.getItem('scoreboardCustomCode');
+                document.getElementById('customCode').value = stored || DEFAULT_CODE;
+            }
+        }
+
+        function closeEditor() {
+            document.getElementById('editorModal').style.display = 'none';
+            generate(); // Final generate on close
+        }
+
+        async function resetCustomCode() {
+            if (!confirm("Möchten Sie den Code wirklich auf den Standard zurücksetzen? Ihre Änderungen gehen verloren.")) return;
+
+            try {
+                const codeResp = await fetch('designs/default.html');
+                if (codeResp.ok) {
+                    DEFAULT_CODE = await codeResp.text();
+                }
+            } catch (e) { console.error("Could not refresh default.html"); }
+
             document.getElementById('customCode').value = DEFAULT_CODE;
+            generate();
         }
-    }
 
-    function openQrModal() {
-        const modal = document.getElementById('qrModal');
-        modal.style.display = 'flex';
-        const container = document.getElementById('qrLarge');
-        container.innerHTML = "";
-        const url = document.getElementById('finalUrl').innerText;
-        
-        new QRCode(container, {
-            text: url,
-            width: 300,
-            height: 300,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.L
-        });
-    }
+        function updateScaleRange() {
+            const slider = document.getElementById('scale');
+            const minIdx = document.getElementById('scaleMin');
+            const maxIdx = document.getElementById('scaleMax');
 
-    // --- DYNAMIC DESIGN LOADING ---
-    const knownDesigns = {
-        'default': 'Standard (Original)',
-        'retro': 'Retro Pixel',
-        'modern': 'Modern Schlicht',
-        'neon': 'Neon',
-        'broadcast': 'TV Übertragung',
-        'glass': 'Glassmorphism',
-        'bold': 'Fett Gedruckt',
-        'material': 'Material Karte',
-        'cyberpunk': 'Cyberpunk',
-        'islands': 'Schwebende Inseln'
-    };
+            slider.min = minIdx.value || 0.1;
+            slider.max = maxIdx.value || 3.0;
 
-    async function loadDesigns() {
-        const select = document.getElementById('designStyle');
-        const currentVal = select.value;
-        
-        try {
-            // Attempt to fetch directory listing from http.server
-            const res = await fetch('designs/');
-            if(res.ok) {
-                const text = await res.text();
-                // Simple parser for standard Apache/Python directory listings
-                // Look for href="filename.html"
-                const regex = /href="([^"]+\.html)"/g;
-                let match;
-                const foundFiles = new Set();
-                
-                while ((match = regex.exec(text)) !== null) {
-                    const filename = match[1];
-                    // Remove .html
-                    const name = filename.replace('.html', '');
-                    foundFiles.add(name);
+            // Ensure current value is within bounds
+            if (parseFloat(slider.value) < parseFloat(slider.min)) slider.value = slider.min;
+            if (parseFloat(slider.value) > parseFloat(slider.max)) slider.value = slider.max;
+
+            document.getElementById('scaleValue').innerText = slider.value;
+            generate();
+        }
+
+        let debounceTimer;
+        function generate() {
+            // Immediate UI updates
+            const design = document.getElementById('designStyle').value;
+            const trigger = document.getElementById('customCodeTrigger');
+            if (trigger) {
+                trigger.style.display = (design === 'custom') ? 'block' : 'none';
+            }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                performGenerate();
+            }, 500);
+        }
+
+        function performGenerate() {
+            saveSettings();
+
+            const settings = getSettingsFromDOM();
+
+            // Broadcast if Sync is active
+            if (settings.syncEnabled && currentPeerId) {
+                broadcastSettings(settings);
+            }
+
+            // Restore Custom Button Visibility (was accidentally pruned)
+            const customTrigger = document.getElementById('customCodeTrigger');
+            if (settings.design === 'custom') {
+                customTrigger.style.display = 'block';
+                let code = document.getElementById('customCode').value;
+                if (!code) {
+                    code = DEFAULT_CODE;
+                    document.getElementById('customCode').value = code;
                 }
-                
-                if(foundFiles.size > 0) {
-                    select.innerHTML = ''; // Clear current
-                    
-                    // Add found files
-                    foundFiles.forEach(name => {
-                        const opt = document.createElement('option');
-                        opt.value = name;
-                        opt.innerText = knownDesigns[name] || (name.charAt(0).toUpperCase() + name.slice(1)); // Title Case fallback
-                        select.appendChild(opt);
-                    });
-                    
-                    // Always add Custom
-                    const optCustom = document.createElement('option');
-                    optCustom.value = 'custom';
-                    optCustom.innerText = 'Eigener Code';
-                    select.appendChild(optCustom);
-                    
-                    // Restore selection if valid
-                    if(foundFiles.has(currentVal) || currentVal === 'custom') {
-                        select.value = currentVal;
+                localStorage.setItem('scoreboardCustomCode', code);
+            } else {
+                customTrigger.style.display = 'none';
+            }
+
+            const params = new URLSearchParams();
+            params.append('id', settings.gameId);
+
+            // CONDITIONAL URL GENERATION
+            // Logic:
+            // 1. Always ID
+            // 2. If Sync ON:
+            //    - Add Sync Params
+            //    - If FullState ON: Add All Params
+            //    - Else: Minimal
+            // 3. If Sync OFF: Add All Params
+
+            if (settings.syncEnabled && currentPeerId) {
+                params.append('sync_id', currentPeerId);
+                params.append('sync_pwd', settings.syncPassword);
+
+                if (document.getElementById('includeFullState').checked) {
+                    appendAllParams(params, settings);
+                }
+            } else {
+                appendAllParams(params, settings);
+            }
+
+            const finalString = `${BASE_URL}?${params.toString()}`;
+
+            // INTERMISSION URL
+            const intermissionParams = new URLSearchParams();
+            intermissionParams.append('id', settings.gameId);
+            if (settings.intermissionDevMode) {
+                intermissionParams.append('dev', 'true');
+            }
+            if (settings.intermissionCycle && settings.intermissionCycle !== '10') {
+                intermissionParams.append('cycle', settings.intermissionCycle);
+            }
+
+            // Pass team colors
+            if (settings.hp) intermissionParams.append('hp', settings.hp);
+            if (settings.hs) intermissionParams.append('hs', settings.hs);
+            if (settings.ht) intermissionParams.append('ht', settings.ht);
+            if (settings.gp) intermissionParams.append('gp', settings.gp);
+            if (settings.gs) intermissionParams.append('gs', settings.gs);
+            if (settings.gt) intermissionParams.append('gt', settings.gt);
+
+            const INTERMISSION_BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/intermission.html';
+            const finalIntermissionString = `${INTERMISSION_BASE_URL}?${intermissionParams.toString()}`;
+
+
+            // Update Iframe (Always full state for local preview)
+            // Ensure local preview mirrors what we want
+            const localParams = new URLSearchParams();
+            localParams.append('id', settings.gameId);
+            localParams.append('design', settings.design);
+            // ... (We could construct full params for local iframe, 
+            // OR we can just use the DOM manipulation on the iframe too? 
+            // Actually the iframe is just a page. Let's keep using full params for the local iframe 
+            // so it doesn't need to connect via PeerJS to itself (which is complex).
+            localParams.append('hn', settings.hn);
+            localParams.append('hp', settings.hp);
+            localParams.append('hs', settings.hs);
+            localParams.append('ht', settings.ht);
+            localParams.append('gn', settings.gn);
+            localParams.append('gp', settings.gp);
+            localParams.append('gs', settings.gs);
+            localParams.append('gt', settings.gt);
+            localParams.append('scale', settings.scale);
+
+            const newSrc = `boards.html?${localParams.toString()}`;
+
+            const iframe = document.getElementById('previewFrame');
+            if (settings.design === 'custom') {
+                iframe.src = newSrc;
+                if (iframe.contentWindow && iframe.contentWindow.location.href.includes(newSrc)) {
+                    iframe.contentWindow.location.reload();
+                } else {
+                    iframe.src = newSrc;
+                }
+            } else {
+                if (!iframe.src.includes(localParams.toString())) {
+                    iframe.src = newSrc;
+                }
+            }
+
+            document.getElementById('urlOutput').style.display = 'block';
+            document.getElementById('finalUrl').innerText = finalString;
+
+            const intermissionSection = document.getElementById('intermissionUrlSection');
+            if (settings.intermissionEnabled) {
+                intermissionSection.style.display = 'block';
+                document.getElementById('intermissionUrl').innerText = finalIntermissionString;
+            } else {
+                intermissionSection.style.display = 'none';
+            }
+
+            const btn = document.getElementById('copyBtn');
+            if (btn.innerText === "Kopiert!") btn.innerText = "Kopieren & Öffnen";
+
+            // Update QR
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: finalString,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+        }
+
+        function getSettingsFromDOM() {
+            const design = document.getElementById('designStyle').value;
+            let customCode = null;
+            if (design === 'custom') {
+                customCode = document.getElementById('customCode').value;
+            }
+
+            return {
+                gameId: document.getElementById('gameId').value,
+                design: design,
+                customCode: customCode,
+                interval: document.getElementById('updateInterval').value,
+                syncEnabled: document.getElementById('syncEnabled').checked,
+                syncId: document.getElementById('syncId').value,
+                syncPassword: document.getElementById('syncPassword').value,
+                hn: document.getElementById('hn').value,
+                hp: document.getElementById('hp').value,
+                hs: document.getElementById('hs').value,
+                ht: document.getElementById('ht').value,
+                gn: document.getElementById('gn').value,
+                gp: document.getElementById('gp').value,
+                gs: document.getElementById('gs').value,
+                gt: document.getElementById('gt').value,
+                scale: document.getElementById('scale').value,
+                intermissionEnabled: document.getElementById('intermissionEnabled').checked,
+                intermissionDevMode: document.getElementById('intermissionDevMode').checked,
+                intermissionCycle: document.getElementById('intermissionCycle').value
+            };
+        }
+
+        function appendAllParams(params, s) {
+            if (s.design !== 'default') params.append('design', s.design);
+            if (s.interval) params.append('interval', s.interval);
+
+            if (s.hn) params.append('hn', s.hn);
+            if (s.hp !== '#000000') params.append('hp', s.hp);
+            else params.append('hp', s.hp);
+
+            params.append('hs', s.hs);
+            params.append('ht', s.ht);
+
+            if (s.gn) params.append('gn', s.gn);
+            params.append('gp', s.gp);
+            params.append('gs', s.gs);
+            params.append('gt', s.gt);
+            if (s.scale !== '1.0' && s.scale !== '1') params.append('scale', s.scale);
+        }
+
+        function broadcastSettings(s) {
+            const payload = {
+                type: 'settings_update',
+                settings: s
+            };
+            broadcastState(payload);
+        }
+
+        function copyAndOpen() {
+            const urlText = document.getElementById('finalUrl').innerText;
+
+            navigator.clipboard.writeText(urlText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerText;
+                btn.innerText = "Kopiert!";
+
+                // Open in new tab
+                window.open(urlText, '_blank');
+
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                }, 3000);
+            });
+        }
+
+        function saveSettings() {
+            const settings = {
+                gameId: document.getElementById('gameId').value,
+                interval: document.getElementById('updateInterval').value,
+                design: document.getElementById('designStyle').value,
+                hn: document.getElementById('hn').value,
+                hp: document.getElementById('hp').value,
+                hs: document.getElementById('hs').value,
+                ht: document.getElementById('ht').value,
+                gn: document.getElementById('gn').value,
+                gp: document.getElementById('gp').value,
+                gs: document.getElementById('gs').value,
+                gt: document.getElementById('gt').value,
+                scale: document.getElementById('scale').value,
+                scaleMin: document.getElementById('scaleMin').value,
+                scaleMax: document.getElementById('scaleMax').value,
+                syncEnabled: document.getElementById('syncEnabled').checked,
+                syncId: document.getElementById('syncId').value,
+                syncPassword: document.getElementById('syncPassword').value,
+                sidebarWidth: document.getElementById('sidebar').style.width,
+                intermissionEnabled: document.getElementById('intermissionEnabled').checked,
+                intermissionDevMode: document.getElementById('intermissionDevMode').checked,
+                intermissionCycle: document.getElementById('intermissionCycle').value
+            };
+            localStorage.setItem('scoreboardGenAttributes', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const stored = localStorage.getItem('scoreboardGenAttributes');
+            if (stored) {
+                try {
+                    const s = JSON.parse(stored);
+                    if (s.gameId) document.getElementById('gameId').value = s.gameId;
+                    if (s.interval) document.getElementById('updateInterval').value = s.interval;
+                    if (s.design) document.getElementById('designStyle').value = s.design;
+                    if (s.hn) document.getElementById('hn').value = s.hn;
+                    if (s.hp) document.getElementById('hp').value = s.hp;
+                    if (s.hs) document.getElementById('hs').value = s.hs;
+                    if (s.ht) document.getElementById('ht').value = s.ht;
+                    if (s.gn) document.getElementById('gn').value = s.gn;
+                    if (s.gp) document.getElementById('gp').value = s.gp;
+                    if (s.gs) document.getElementById('gs').value = s.gs;
+                    if (s.gt) document.getElementById('gt').value = s.gt;
+                    if (s.scale) {
+                        document.getElementById('scale').value = s.scale;
+                        document.getElementById('scaleValue').innerText = s.scale;
+                    }
+                    if (s.scaleMin) document.getElementById('scaleMin').value = s.scaleMin;
+                    if (s.scaleMax) document.getElementById('scaleMax').value = s.scaleMax;
+                    if (document.getElementById('scaleMin').value || document.getElementById('scaleMax').value) {
+                        const slider = document.getElementById('scale');
+                        slider.min = document.getElementById('scaleMin').value || 0.1;
+                        slider.max = document.getElementById('scaleMax').value || 3.0;
+                    }
+                    if (s.syncEnabled !== undefined) document.getElementById('syncEnabled').checked = s.syncEnabled;
+                    if (s.syncId) document.getElementById('syncId').value = s.syncId;
+                    if (s.syncPassword) document.getElementById('syncPassword').value = s.syncPassword;
+                    if (s.sidebarWidth) document.getElementById('sidebar').style.width = s.sidebarWidth;
+                    if (s.intermissionEnabled !== undefined) document.getElementById('intermissionEnabled').checked = s.intermissionEnabled;
+                    if (s.intermissionDevMode !== undefined) document.getElementById('intermissionDevMode').checked = s.intermissionDevMode;
+                    if (s.intermissionCycle) document.getElementById('intermissionCycle').value = s.intermissionCycle;
+                } catch (e) { console.error(e); }
+            }
+
+            const customCode = localStorage.getItem('scoreboardCustomCode');
+            if (customCode) {
+                document.getElementById('customCode').value = customCode;
+            } else {
+                document.getElementById('customCode').value = DEFAULT_CODE;
+            }
+        }
+
+        function openQrModal() {
+            const modal = document.getElementById('qrModal');
+            modal.style.display = 'flex';
+            const container = document.getElementById('qrLarge');
+            container.innerHTML = "";
+            const url = document.getElementById('finalUrl').innerText;
+
+            new QRCode(container, {
+                text: url,
+                width: 300,
+                height: 300,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+        }
+
+        // --- DYNAMIC DESIGN LOADING ---
+        const knownDesigns = {
+            'default': 'Standard (Original)',
+            'retro': 'Retro Pixel',
+            'modern': 'Modern Schlicht',
+            'neon': 'Neon',
+            'broadcast': 'TV Übertragung',
+            'glass': 'Glassmorphism',
+            'bold': 'Fett Gedruckt',
+            'material': 'Material Karte',
+            'cyberpunk': 'Cyberpunk',
+            'islands': 'Schwebende Inseln'
+        };
+
+        async function loadDesigns() {
+            const select = document.getElementById('designStyle');
+            const currentVal = select.value;
+
+            try {
+                // Attempt to fetch directory listing from http.server
+                const res = await fetch('designs/');
+                if (res.ok) {
+                    const text = await res.text();
+                    // Simple parser for standard Apache/Python directory listings
+                    // Look for href="filename.html"
+                    const regex = /href="([^"]+\.html)"/g;
+                    let match;
+                    const foundFiles = new Set();
+
+                    while ((match = regex.exec(text)) !== null) {
+                        const filename = match[1];
+                        // Remove .html
+                        const name = filename.replace('.html', '');
+                        foundFiles.add(name);
+                    }
+
+                    if (foundFiles.size > 0) {
+                        select.innerHTML = ''; // Clear current
+
+                        // Add found files
+                        foundFiles.forEach(name => {
+                            const opt = document.createElement('option');
+                            opt.value = name;
+                            opt.innerText = knownDesigns[name] || (name.charAt(0).toUpperCase() + name.slice(1)); // Title Case fallback
+                            select.appendChild(opt);
+                        });
+
+                        // Always add Custom
+                        const optCustom = document.createElement('option');
+                        optCustom.value = 'custom';
+                        optCustom.innerText = 'Eigener Code';
+                        select.appendChild(optCustom);
+
+                        // Restore selection if valid
+                        if (foundFiles.has(currentVal) || currentVal === 'custom') {
+                            select.value = currentVal;
+                        }
                     }
                 }
+            } catch (e) {
+                console.warn("Could not auto-detect designs. Using static list.", e);
             }
-        } catch (e) {
-            console.warn("Could not auto-detect designs. Using static list.", e);
-        }
-    }
-
-    window.onload = function() {
-        loadSettings();
-        fetchGameDetails();
-        loadDesigns();
-        
-        // Auto-init Sync if enabled
-        if(document.getElementById('syncEnabled').checked) {
-            toggleSync();
-        }
-    };
-    // --- TIMER LOGIC ---
-    let timerState = {
-        running: false,
-        seconds: 1200, // Default 20 min
-        target: 1200,  // Target (start or end)
-        direction: -1, // -1 down, 1 up
-        visible: false,
-        lastTick: 0
-    };
-    
-    let penalties = []; // { id, team, player, number, remaining, max }
-
-    
-    let timerInterval = null;
-    const timerChannel = new BroadcastChannel('scoreboard_timer');
-
-    function formatTime(totalSeconds) {
-        const sign = totalSeconds < 0 ? "-" : "";
-        const s = Math.abs(totalSeconds);
-        const m = Math.floor(s / 60);
-        const sec = s % 60;
-        return `${sign}${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-    }
-
-    function updateTimerDisplay() {
-        const el = document.getElementById('timerValue');
-        el.innerText = formatTime(timerState.seconds);
-        
-        // Toggle Play/Stop Btn
-        const btnStart = document.getElementById('btnStart');
-        const btnStop = document.getElementById('btnStop');
-        
-        if(timerState.running) {
-            btnStart.classList.add('hidden');
-            btnStop.classList.remove('hidden');
-        } else {
-            btnStart.classList.remove('hidden');
-            btnStop.classList.add('hidden');
         }
 
-        // Check Mode
-        const mode = document.getElementById('penaltyMode').value;
+        window.onload = function () {
+            loadSettings();
+            fetchGameDetails();
+            loadDesigns();
 
-        // Render Penalties in Controller
-        if (mode === 'none') {
-             const cHome = document.getElementById('ctlPenaltiesHome');
-             const cGuest = document.getElementById('ctlPenaltiesGuest');
-             if(cHome) cHome.innerHTML = '';
-             if(cGuest) cGuest.innerHTML = '';
-        } else {
-             renderControllerPenalties();
-        }
-
-        // Broadcast
-        const statePayload = {
-            type: 'timer_update',
-            timeString: formatTime(timerState.seconds),
-            visible: timerState.visible,
-            running: timerState.running,
-            penalties: (mode === 'none') ? [] : penalties
+            // Auto-init Sync if enabled
+            if (document.getElementById('syncEnabled').checked) {
+                toggleSync();
+            }
+        };
+        // --- TIMER LOGIC ---
+        let timerState = {
+            running: false,
+            seconds: 1200, // Default 20 min
+            target: 1200,  // Target (start or end)
+            direction: -1, // -1 down, 1 up
+            visible: false,
+            lastTick: 0
         };
 
-        timerChannel.postMessage(statePayload);
-        broadcastState(statePayload);
-    }
-
-    function togglePenaltyMode() {
-        const mode = document.getElementById('penaltyMode').value;
-        const btn = document.getElementById('btnAddPenalty');
-        if (btn) {
-            // btn-reset has modest styling, let's just toggle visibility
-            btn.style.display = (mode === 'none') ? 'none' : 'inline-block';
-        }
-        updateTimerDisplay();
-    }
+        let penalties = []; // { id, team, player, number, remaining, max }
 
 
-    // --- PENALTY LOGIC ---
+        let timerInterval = null;
+        const timerChannel = new BroadcastChannel('scoreboard_timer');
 
-    function openPenaltyModal() {
-        document.getElementById('penaltyModal').style.display = 'flex';
-        // Reset state
-        document.getElementById('selectedPenaltyTeam').value = '';
-        document.getElementById('selectedPenaltyPlayerName').value = '';
-        document.getElementById('selectedPenaltyPlayerNumber').value = '';
-        // Default 2 min
-        setPenaltyDuration(120);
-
-        // Populate Lists
-        const hc = document.getElementById('hp').value;
-        const gc = document.getElementById('gp').value;
-        const hn = document.getElementById('hn').value || (gameDataFull ? gameDataFull.home_team_name : 'HEIM');
-        const gn = document.getElementById('gn').value || (gameDataFull ? gameDataFull.guest_team_name : 'GAST');
-
-        const phTitle = document.getElementById('phTitle');
-        const pgTitle = document.getElementById('pgTitle');
-        
-        phTitle.innerText = hn;
-        phTitle.style.borderBottom = `3px solid ${hc}`;
-        pgTitle.innerText = gn;
-        pgTitle.style.borderBottom = `3px solid ${gc}`;
-
-        renderRosterToContainer('home', gameDataFull?.players?.home, 'listHome');
-        renderRosterToContainer('guest', gameDataFull?.players?.guest, 'listGuest');
-
-        
-        document.getElementById('penaltySummary').innerText = "Bitte Spieler wählen...";
-    }
-
-    function renderRosterToContainer(team, players, containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        
-        if (!players || players.length === 0) {
-            container.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">Kein Roster</div>';
-            return;
+        function formatTime(totalSeconds) {
+            const sign = totalSeconds < 0 ? "-" : "";
+            const s = Math.abs(totalSeconds);
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${sign}${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
 
-        players.forEach(p => {
-             const row = document.createElement('div');
-             row.className = 'roster-item';
-             row.dataset.team = team;
-             row.style.padding = '10px';
-             row.style.borderBottom = '1px solid #eee';
-             row.style.cursor = 'pointer';
-             row.style.display = 'flex';
-             row.style.alignItems = 'center';
-             row.style.gap = '10px';
-             
-             const num = p.trikot_number;
-             const fname = p.player_firstname;
-             const lname = p.player_name;
+        function updateTimerDisplay() {
+            const el = document.getElementById('timerValue');
+            el.innerText = formatTime(timerState.seconds);
 
-             row.onclick = () => {
-                 // Clear ALL highlights
-                 document.querySelectorAll('.roster-item').forEach(x => x.style.background = 'transparent');
-                 // Highlight self
-                 row.style.background = '#dbeafe';
-                 
-                 document.getElementById('selectedPenaltyTeam').value = team;
-                 document.getElementById('selectedPenaltyPlayerName').value = lname || fname; 
-                 document.getElementById('selectedPenaltyPlayerNumber').value = num || '';
-                 updatePenaltySummary();
-             };
+            // Toggle Play/Stop Btn
+            const btnStart = document.getElementById('btnStart');
+            const btnStop = document.getElementById('btnStop');
 
-             row.innerHTML = `
+            if (timerState.running) {
+                btnStart.classList.add('hidden');
+                btnStop.classList.remove('hidden');
+            } else {
+                btnStart.classList.remove('hidden');
+                btnStop.classList.add('hidden');
+            }
+
+            // Check Mode
+            const mode = document.getElementById('penaltyMode').value;
+
+            // Render Penalties in Controller
+            if (mode === 'none') {
+                const cHome = document.getElementById('ctlPenaltiesHome');
+                const cGuest = document.getElementById('ctlPenaltiesGuest');
+                if (cHome) cHome.innerHTML = '';
+                if (cGuest) cGuest.innerHTML = '';
+            } else {
+                renderControllerPenalties();
+            }
+
+            // Broadcast
+            const statePayload = {
+                type: 'timer_update',
+                timeString: formatTime(timerState.seconds),
+                visible: timerState.visible,
+                running: timerState.running,
+                penalties: (mode === 'none') ? [] : penalties
+            };
+
+            timerChannel.postMessage(statePayload);
+            broadcastState(statePayload);
+        }
+
+        function togglePenaltyMode() {
+            const mode = document.getElementById('penaltyMode').value;
+            const btn = document.getElementById('btnAddPenalty');
+            if (btn) {
+                // btn-reset has modest styling, let's just toggle visibility
+                btn.style.display = (mode === 'none') ? 'none' : 'inline-block';
+            }
+            updateTimerDisplay();
+        }
+
+
+        // --- PENALTY LOGIC ---
+
+        function openPenaltyModal() {
+            document.getElementById('penaltyModal').style.display = 'flex';
+            // Reset state
+            document.getElementById('selectedPenaltyTeam').value = '';
+            document.getElementById('selectedPenaltyPlayerName').value = '';
+            document.getElementById('selectedPenaltyPlayerNumber').value = '';
+            // Default 2 min
+            setPenaltyDuration(120);
+
+            // Populate Lists
+            const hc = document.getElementById('hp').value;
+            const gc = document.getElementById('gp').value;
+            const hn = document.getElementById('hn').value || (gameDataFull ? gameDataFull.home_team_name : 'HEIM');
+            const gn = document.getElementById('gn').value || (gameDataFull ? gameDataFull.guest_team_name : 'GAST');
+
+            const phTitle = document.getElementById('phTitle');
+            const pgTitle = document.getElementById('pgTitle');
+
+            phTitle.innerText = hn;
+            phTitle.style.borderBottom = `3px solid ${hc}`;
+            pgTitle.innerText = gn;
+            pgTitle.style.borderBottom = `3px solid ${gc}`;
+
+            renderRosterToContainer('home', gameDataFull?.players?.home, 'listHome');
+            renderRosterToContainer('guest', gameDataFull?.players?.guest, 'listGuest');
+
+
+            document.getElementById('penaltySummary').innerText = "Bitte Spieler wählen...";
+        }
+
+        function renderRosterToContainer(team, players, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (!players || players.length === 0) {
+                container.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">Kein Roster</div>';
+                return;
+            }
+
+            players.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'roster-item';
+                row.dataset.team = team;
+                row.style.padding = '10px';
+                row.style.borderBottom = '1px solid #eee';
+                row.style.cursor = 'pointer';
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '10px';
+
+                const num = p.trikot_number;
+                const fname = p.player_firstname;
+                const lname = p.player_name;
+
+                row.onclick = () => {
+                    // Clear ALL highlights
+                    document.querySelectorAll('.roster-item').forEach(x => x.style.background = 'transparent');
+                    // Highlight self
+                    row.style.background = '#dbeafe';
+
+                    document.getElementById('selectedPenaltyTeam').value = team;
+                    document.getElementById('selectedPenaltyPlayerName').value = lname || fname;
+                    document.getElementById('selectedPenaltyPlayerNumber').value = num || '';
+                    updatePenaltySummary();
+                };
+
+                row.innerHTML = `
                 <span style="font-weight:bold; background:#333; color:white; width:24px; height:24px; display:flex; justify-content:center; align-items:center; border-radius:3px; font-size:0.85em;">${num || '-'}</span>
                 <span style="font-size:0.95em;">${lname}, ${fname.charAt(0)}.</span>
              `;
-             container.appendChild(row);
-        });
-    }
-
-    // Deprecated old functions removed/replaced
-
-    function closePenaltyModal() {
-        document.getElementById('penaltyModal').style.display = 'none';
-    }
-
-    function setPenaltyDuration(sec) {
-        document.getElementById('selectedPenaltyDuration').value = sec;
-        updatePenaltySummary();
-    }
-
-    function updatePenaltySummary() {
-        const team = document.getElementById('selectedPenaltyTeam').value;
-        const name = document.getElementById('selectedPenaltyPlayerName').value;
-        const number = document.getElementById('selectedPenaltyPlayerNumber').value;
-        const dur = document.getElementById('selectedPenaltyDuration').value;
-        
-        if (!team) return;
-
-        let text = [];
-        text.push(team === 'home' ? 'HEIM' : 'GAST');
-        if(number) text.push(`#${number}`);
-        if(name) text.push(name);
-        if(dur) text.push(formatTime(dur));
-        
-        document.getElementById('penaltySummary').innerText = text.join(' | ');
-    }
-
-    function commitPenalty() {
-        const team = document.getElementById('selectedPenaltyTeam').value;
-        const name = document.getElementById('selectedPenaltyPlayerName').value;
-        const number = document.getElementById('selectedPenaltyPlayerNumber').value;
-        const dur = parseInt(document.getElementById('selectedPenaltyDuration').value);
-        
-        if (!team) {
-            alert('Bitte Spieler wählen!');
-            return;
+                container.appendChild(row);
+            });
         }
 
-        // Determine Minutes Text (simplistic)
-        let minText = "2'";
-        if (dur === 120) minText = "2'";
-        else if (dur === 240) minText = "2'+2'";
-        else if (dur === 300) minText = "5'";
-        else if (dur === 600) minText = "10'";
-        else {
-             // Custom
-             const m = Math.floor(dur / 60);
-             minText = m + "'";
+        // Deprecated old functions removed/replaced
+
+        function closePenaltyModal() {
+            document.getElementById('penaltyModal').style.display = 'none';
         }
-        
-        penalties.push({
-            id: Date.now() + Math.random(),
-            team: team,
-            player: name || 'Spieler',
-            number: number || '00',
-            remaining: dur,
-            max: dur,
-            minutesCode: minText,
-            reasonCode: -1
-        });
-        
-        closePenaltyModal();
-        updateTimerDisplay();
-    }
 
-    function removePenalty(id) {
-        penalties = penalties.filter(p => p.id !== id);
-        updateTimerDisplay();
-    }
+        function setPenaltyDuration(sec) {
+            document.getElementById('selectedPenaltyDuration').value = sec;
+            updatePenaltySummary();
+        }
 
-    function renderControllerPenalties() {
-        const cHome = document.getElementById('ctlPenaltiesHome');
-        const cGuest = document.getElementById('ctlPenaltiesGuest');
-        cHome.innerHTML = '';
-        cGuest.innerHTML = '';
+        function updatePenaltySummary() {
+            const team = document.getElementById('selectedPenaltyTeam').value;
+            const name = document.getElementById('selectedPenaltyPlayerName').value;
+            const number = document.getElementById('selectedPenaltyPlayerNumber').value;
+            const dur = document.getElementById('selectedPenaltyDuration').value;
 
-        penalties.forEach(p => {
-            const el = document.createElement('div');
-            el.className = 'penalty-tag';
-            // Styling for controller tags with better touch area
-            el.style.background = 'rgba(0,0,0,0.85)';
-            el.style.border = '1px solid rgba(255,255,255,0.2)';
-            el.style.color = '#fff';
-            el.style.padding = '8px 12px'; // Increased padding
-            el.style.borderRadius = '6px';
-            el.style.fontSize = '0.9em';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.gap = '10px';
-            el.style.cursor = 'pointer';
-            el.style.marginBottom = '5px';
-            el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-            
-            el.innerHTML = `
+            if (!team) return;
+
+            let text = [];
+            text.push(team === 'home' ? 'HEIM' : 'GAST');
+            if (number) text.push(`#${number}`);
+            if (name) text.push(name);
+            if (dur) text.push(formatTime(dur));
+
+            document.getElementById('penaltySummary').innerText = text.join(' | ');
+        }
+
+        function commitPenalty() {
+            const team = document.getElementById('selectedPenaltyTeam').value;
+            const name = document.getElementById('selectedPenaltyPlayerName').value;
+            const number = document.getElementById('selectedPenaltyPlayerNumber').value;
+            const dur = parseInt(document.getElementById('selectedPenaltyDuration').value);
+
+            if (!team) {
+                alert('Bitte Spieler wählen!');
+                return;
+            }
+
+            // Determine Minutes Text (simplistic)
+            let minText = "2'";
+            if (dur === 120) minText = "2'";
+            else if (dur === 240) minText = "2'+2'";
+            else if (dur === 300) minText = "5'";
+            else if (dur === 600) minText = "10'";
+            else {
+                // Custom
+                const m = Math.floor(dur / 60);
+                minText = m + "'";
+            }
+
+            penalties.push({
+                id: Date.now() + Math.random(),
+                team: team,
+                player: name || 'Spieler',
+                number: number || '00',
+                remaining: dur,
+                max: dur,
+                minutesCode: minText,
+                reasonCode: -1
+            });
+
+            closePenaltyModal();
+            updateTimerDisplay();
+        }
+
+        function removePenalty(id) {
+            penalties = penalties.filter(p => p.id !== id);
+            updateTimerDisplay();
+        }
+
+        function renderControllerPenalties() {
+            const cHome = document.getElementById('ctlPenaltiesHome');
+            const cGuest = document.getElementById('ctlPenaltiesGuest');
+            cHome.innerHTML = '';
+            cGuest.innerHTML = '';
+
+            penalties.forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'penalty-tag';
+                // Styling for controller tags with better touch area
+                el.style.background = 'rgba(0,0,0,0.85)';
+                el.style.border = '1px solid rgba(255,255,255,0.2)';
+                el.style.color = '#fff';
+                el.style.padding = '8px 12px'; // Increased padding
+                el.style.borderRadius = '6px';
+                el.style.fontSize = '0.9em';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.gap = '10px';
+                el.style.cursor = 'pointer';
+                el.style.marginBottom = '5px';
+                el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+
+                el.innerHTML = `
                 <span style="font-weight:bold; color:#ffcc00; font-family:monospace; font-size:1.1em;">${formatTime(p.remaining)}</span>
                 <span style="background:#555; padding:2px 5px; borderRadius:3px; font-weight:bold;">#${p.number}</span>
                 <span style="font-size:0.9em; opacity:0.9;">${p.player.split(' ')[0]}</span>
                 <span style="color:#ff5555; font-weight:bold; font-size:1.4em; padding:0 5px;">&times;</span>
             `;
 
-            // Make whole tag clickable for easier removal on touch? 
-            // Or just the X. User said "easier for removing them". 
-            // Large X is good. Let's make onclick on the whole element for ease of use.
-            el.onclick = (e) => {
-                e.stopPropagation();
-                if(confirm(`Strafe von #${p.number} wirklich löschen?`)) {
-                    removePenalty(p.id);
-                }
-            };
-            
-            if(p.team === 'home') cHome.appendChild(el);
-            else cGuest.appendChild(el);
-        });
-    }
-    
-    function toggleTimerVis() {
-        timerState.visible = !timerState.visible;
-        const btn = document.getElementById('visToggle');
-        if(timerState.visible) {
-            btn.classList.add('active');
-            // btn.querySelector('span:nth-child(2)').innerText = "Verbergen";
-        } else {
-            btn.classList.remove('active');
-            // btn.querySelector('span:nth-child(2)').innerText = "Anzeigen";
+                // Make whole tag clickable for easier removal on touch? 
+                // Or just the X. User said "easier for removing them". 
+                // Large X is good. Let's make onclick on the whole element for ease of use.
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Strafe von #${p.number} wirklich löschen?`)) {
+                        removePenalty(p.id);
+                    }
+                };
+
+                if (p.team === 'home') cHome.appendChild(el);
+                else cGuest.appendChild(el);
+            });
         }
-        updateTimerDisplay();
-    }
 
-    function startTimer() {
-        if(timerState.running) return;
-        timerState.running = true;
-        timerState.lastTick = Date.now();
-        
-        timerInterval = setInterval(() => {
-            const now = Date.now();
-            const delta = now - timerState.lastTick;
-            
-            // Should be approx 1000ms
-            if(delta >= 1000) {
-                // Determine step
-                const steps = Math.floor(delta / 1000);
-                timerState.seconds += (steps * timerState.direction);
-                timerState.lastTick += (steps * 1000);
-                
-                // Tick Penalties (only if timer is counting down? User said "when the timer runs")
-                // Usually penalties only count down when game time runs.
-                if (timerState.running) { 
-                    penalties.forEach(p => {
-                        if (p.remaining > 0) p.remaining -= steps;
-                        if (p.remaining < 0) p.remaining = 0;
-                    });
-                     // Remove expired? Usually we keep them until stoppage or user clears, 
-                     // but standard is they disappear when done or stay until faceoff.
-                     // User said: "remove them" via x-icon, implying manual removal might be needed,
-                     // but "time should also be count down".
-                     // Let's AUTO-REMOVE if 0 for now to keep it clean, or maybe keep at 0:00?
-                     // Standard scoreboard behavior: they disappear when 0.
-                     penalties = penalties.filter(p => p.remaining > 0);
-                }
+        function toggleTimerVis() {
+            timerState.visible = !timerState.visible;
+            const btn = document.getElementById('visToggle');
+            if (timerState.visible) {
+                btn.classList.add('active');
+                // btn.querySelector('span:nth-child(2)').innerText = "Verbergen";
+            } else {
+                btn.classList.remove('active');
+                // btn.querySelector('span:nth-child(2)').innerText = "Anzeigen";
+            }
+            updateTimerDisplay();
+        }
 
-                
-                // Check stops
-                if (timerState.direction === -1 && timerState.seconds <= 0) {
-                    timerState.seconds = 0;
-                    stopTimer();
-                } else if (timerState.direction === 1 && timerState.seconds >= timerState.target && timerState.target > 0) {
-                    // Only stop going up if we have a target (non-zero usually, but here target is the 'length')
-                    // Logic check: "toggle: count up/down".
-                    // If up, usually starts at 0. 'Target' might be the max time.
-                    // For now, let's just let it run unless we explicitly define a stop.
-                    // The user said "target time when it automatically stops".
-                    if(timerState.seconds >= timerState.target) {
-                        timerState.seconds = timerState.target;
+        function startTimer() {
+            if (timerState.running) return;
+            timerState.running = true;
+            timerState.lastTick = Date.now();
+
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const delta = now - timerState.lastTick;
+
+                // Should be approx 1000ms
+                if (delta >= 1000) {
+                    // Determine step
+                    const steps = Math.floor(delta / 1000);
+                    timerState.seconds += (steps * timerState.direction);
+                    timerState.lastTick += (steps * 1000);
+
+                    // Tick Penalties (only if timer is counting down? User said "when the timer runs")
+                    // Usually penalties only count down when game time runs.
+                    if (timerState.running) {
+                        penalties.forEach(p => {
+                            if (p.remaining > 0) p.remaining -= steps;
+                            if (p.remaining < 0) p.remaining = 0;
+                        });
+                        // Remove expired? Usually we keep them until stoppage or user clears, 
+                        // but standard is they disappear when done or stay until faceoff.
+                        // User said: "remove them" via x-icon, implying manual removal might be needed,
+                        // but "time should also be count down".
+                        // Let's AUTO-REMOVE if 0 for now to keep it clean, or maybe keep at 0:00?
+                        // Standard scoreboard behavior: they disappear when 0.
+                        penalties = penalties.filter(p => p.remaining > 0);
+                    }
+
+
+                    // Check stops
+                    if (timerState.direction === -1 && timerState.seconds <= 0) {
+                        timerState.seconds = 0;
                         stopTimer();
+                    } else if (timerState.direction === 1 && timerState.seconds >= timerState.target && timerState.target > 0) {
+                        // Only stop going up if we have a target (non-zero usually, but here target is the 'length')
+                        // Logic check: "toggle: count up/down".
+                        // If up, usually starts at 0. 'Target' might be the max time.
+                        // For now, let's just let it run unless we explicitly define a stop.
+                        // The user said "target time when it automatically stops".
+                        if (timerState.seconds >= timerState.target) {
+                            timerState.seconds = timerState.target;
+                            stopTimer();
+                        }
                     }
+
+                    updateTimerDisplay();
                 }
-                
-                updateTimerDisplay();
+            }, 100); // Check more often for precision
+            updateTimerDisplay();
+        }
+
+        function stopTimer() {
+            timerState.running = false;
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+        }
+
+        function resetTimer() {
+            stopTimer();
+            applyPreset();
+        }
+
+        function adjustTime(sec) {
+            timerState.seconds += sec;
+            if (timerState.seconds < 0) timerState.seconds = 0;
+            updateTimerDisplay();
+        }
+
+        function updateDirection() {
+            const r = document.querySelector('input[name="tm_dir"]:checked');
+            timerState.direction = parseInt(r.value);
+            // If we switch direction, do we reset?
+            // Usually safer to apply preset again to ensure start/end points are correct
+            applyPreset();
+        }
+
+        function applyPreset() {
+            const val = document.getElementById('timerPreset').value;
+            // Check if radio exists, otherwise default -1
+            const r = document.querySelector('input[name="tm_dir"]:checked');
+            let dir = -1;
+            if (r) dir = parseInt(r.value);
+
+            let mins = 20;
+
+            if (val === 'custom') {
+                document.getElementById('customTimeInput').style.display = 'flex';
+                mins = parseInt(document.getElementById('customMin').value) || 0;
+            } else {
+                const cti = document.getElementById('customTimeInput');
+                if (cti) cti.style.display = 'none';
+                mins = parseInt(val);
             }
-        }, 100); // Check more often for precision
-        updateTimerDisplay();
-    }
 
-    function stopTimer() {
-        timerState.running = false;
-        clearInterval(timerInterval);
-        updateTimerDisplay();
-    }
+            const totalSec = mins * 60;
+            timerState.target = totalSec;
+            timerState.direction = dir;
 
-    function resetTimer() {
-        stopTimer();
-        applyPreset();
-    }
+            // Logic:
+            // If DOWN: start = target (e.g. 20:00), end = 0.
+            // If UP: start = 0, end = target (e.g. 20:00).
 
-    function adjustTime(sec) {
-        timerState.seconds += sec;
-        if(timerState.seconds < 0) timerState.seconds = 0;
-        updateTimerDisplay();
-    }
-    
-    function updateDirection() {
-        const r = document.querySelector('input[name="tm_dir"]:checked');
-        timerState.direction = parseInt(r.value);
-        // If we switch direction, do we reset?
-        // Usually safer to apply preset again to ensure start/end points are correct
-        applyPreset();
-    }
-
-    function applyPreset() {
-        const val = document.getElementById('timerPreset').value;
-        // Check if radio exists, otherwise default -1
-        const r = document.querySelector('input[name="tm_dir"]:checked');
-        let dir = -1;
-        if(r) dir = parseInt(r.value);
-        
-        let mins = 20;
-
-        if (val === 'custom') {
-            document.getElementById('customTimeInput').style.display = 'flex';
-            mins = parseInt(document.getElementById('customMin').value) || 0;
-        } else {
-            const cti = document.getElementById('customTimeInput');
-            if(cti) cti.style.display = 'none';
-            mins = parseInt(val);
-        }
-
-        const totalSec = mins * 60;
-        timerState.target = totalSec;
-        timerState.direction = dir;
-
-        // Logic:
-        // If DOWN: start = target (e.g. 20:00), end = 0.
-        // If UP: start = 0, end = target (e.g. 20:00).
-        
-        if (timerState.direction === -1) {
-            timerState.seconds = totalSec;
-        } else {
-            timerState.seconds = 0;
-        }
-        
-        // If running, we might want to stop? Or allow hot swapping?
-        // Let's keep it simple: resetting time doesn't stop it if you just clicked, 
-        // BUT changing preset usually implies a reset.
-        stopTimer(); // Ensure we stop when changing preset completely
-        
-        updateTimerDisplay();
-    }
-
-    // Initialize Broadcast on load to ensure state is clean
-    window.addEventListener('load', () => {
-        applyPreset(); // Set default 20:00
-    });
-
-    // --- PEER JS SYNC ---
-    let peer = null;
-    let currentPeerId = null;
-    let connections = [];
-
-    function toggleSync() {
-        const enabled = document.getElementById('syncEnabled').checked;
-        const config = document.getElementById('syncConfig');
-        
-        config.style.display = enabled ? 'block' : 'none';
-        
-        if (enabled && !peer) {
-            initPeer();
-        } else if (!enabled) {
-            if(peer) {
-                peer.destroy();
-                peer = null;
+            if (timerState.direction === -1) {
+                timerState.seconds = totalSec;
+            } else {
+                timerState.seconds = 0;
             }
-            currentPeerId = null;
-            connections = [];
-            document.getElementById('syncStatus').innerText = "Offline";
-            document.getElementById('syncStatus').style.color = "#666";
-            generate(); 
+
+            // If running, we might want to stop? Or allow hot swapping?
+            // Let's keep it simple: resetting time doesn't stop it if you just clicked, 
+            // BUT changing preset usually implies a reset.
+            stopTimer(); // Ensure we stop when changing preset completely
+
+            updateTimerDisplay();
         }
-    }
 
-    function initPeer() {
-        const status = document.getElementById('syncStatus');
-        const customId = document.getElementById('syncId').value.trim();
-        status.innerText = "Verbinde...";
-        
-        // Create Peer
-        peer = new Peer(customId || null, {
-            debug: 1
+        // Initialize Broadcast on load to ensure state is clean
+        window.addEventListener('load', () => {
+            applyPreset(); // Set default 20:00
         });
-        
-        peer.on('open', (id) => {
-            currentPeerId = id;
-            status.innerText = "Online (Warte...)";
-            status.style.color = "orange";
-            generate(); // Update URL with new Peer ID
-        });
-        
-        peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                if (data.type === 'auth') {
-                    if (data.password === document.getElementById('syncPassword').value) {
-                        connections.push(conn);
-                        
-                        // Update Status
-                        status.innerText = `Verbunden (${connections.length})`;
-                        status.style.color = "green";
 
-                        // Send current state immediately
-                         // 1. Settings
-                        broadcastSettings(getSettingsFromDOM());
-                        // 2. Timer
-                        updateTimerDisplay();
-                    } else {
-                        console.log("Auth failed");
-                        conn.close();
+        // --- PEER JS SYNC ---
+        let peer = null;
+        let currentPeerId = null;
+        let connections = [];
+
+        function toggleSync() {
+            const enabled = document.getElementById('syncEnabled').checked;
+            const config = document.getElementById('syncConfig');
+
+            config.style.display = enabled ? 'block' : 'none';
+
+            if (enabled && !peer) {
+                initPeer();
+            } else if (!enabled) {
+                if (peer) {
+                    peer.destroy();
+                    peer = null;
+                }
+                currentPeerId = null;
+                connections = [];
+                document.getElementById('syncStatus').innerText = "Offline";
+                document.getElementById('syncStatus').style.color = "#666";
+                generate();
+            }
+        }
+
+        function initPeer() {
+            const status = document.getElementById('syncStatus');
+            const customId = document.getElementById('syncId').value.trim();
+            status.innerText = "Verbinde...";
+
+            // Create Peer
+            peer = new Peer(customId || null, {
+                debug: 1
+            });
+
+            peer.on('open', (id) => {
+                currentPeerId = id;
+                status.innerText = "Online (Warte...)";
+                status.style.color = "orange";
+                generate(); // Update URL with new Peer ID
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    if (data.type === 'auth') {
+                        if (data.password === document.getElementById('syncPassword').value) {
+                            connections.push(conn);
+
+                            // Update Status
+                            status.innerText = `Verbunden (${connections.length})`;
+                            status.style.color = "green";
+
+                            // Send current state immediately
+                            // 1. Settings
+                            broadcastSettings(getSettingsFromDOM());
+                            // 2. Timer
+                            updateTimerDisplay();
+                        } else {
+                            console.log("Auth failed");
+                            conn.close();
+                        }
                     }
-                }
-            });
-            
-            conn.on('close', () => {
-                connections = connections.filter(c => c !== conn);
-                if(connections.length === 0) {
-                     status.innerText = "Online (Warte...)";
-                     status.style.color = "orange";
-                } else {
-                     status.innerText = `Verbunden (${connections.length})`;
-                }
-            });
-        });
-        
-        peer.on('error', (err) => {
-            console.error(err);
-            status.innerText = "Fehler!";
-            status.style.color = "red";
-        });
-    }
-
-    function broadcastState(payload) {
-        if(connections.length > 0) {
-            connections.forEach(conn => {
-                const connOpen = conn.open || (conn._open); // PeerJS properties can be tricky check
-                // Just try send
-                try {
-                     conn.send(payload);
-                } catch(e) { console.error(e); }
-            });
-        }
-    }
-
-    // --- ACCORDION & RESIZER LOGIC ---
-    function toggleAccordion(header) {
-        header.classList.toggle('active');
-        const content = header.nextElementSibling;
-        const chevron = header.querySelector('.chevron');
-        
-        if (header.classList.contains('active')) {
-            content.style.display = 'block';
-        } else {
-            content.style.display = 'none';
-        }
-    }
-
-    // Resizer
-    const resizer = document.getElementById('dragMe');
-    const sidebar = document.getElementById('sidebar');
-    let isResizing = false;
-
-    if(resizer){
-        resizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            resizer.classList.add('active');
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            // The sidebar is on the RIGHT. 
-            // So width = Window Width - Mouse X (approx)
-            // Or better: The container is flex row.
-            // Mouse X is closer to the resizing handle.
-            // If sidebar is right aligned:
-            // The handle is on the left of the sidebar.
-            // Width = ContainerRight - MouseX.
-            
-            const container = document.querySelector('.container');
-            const rect = container.getBoundingClientRect();
-            const newWidth = rect.right - e.clientX;
-            
-            if (newWidth > 250 && newWidth < 800) {
-                 sidebar.style.width = newWidth + 'px';
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if(isResizing) {
-                isResizing = false;
-                resizer.classList.remove('active');
-                document.body.style.cursor = 'default';
-                document.body.style.userSelect = 'auto';
-                saveSettings(); // Save sidebar width
-            }
-        });
-    }
-</script>
-
-<script>
-    // Initialize
-    (async function init() {
-        // 1. Load Designs dynamically
-        try {
-            const resp = await fetch('designs/designs.json');
-            // ... (rest of design loading)
-            if(resp.ok) {
-                const designs = await resp.json();
-                const select = document.getElementById('designStyle');
-                const previousValue = select.value;
-                
-                // Clear existing options
-                select.innerHTML = '';
-                
-                // Always add Default first
-                const defaultOpt = document.createElement('option');
-                defaultOpt.value = 'default';
-                defaultOpt.textContent = 'Standard (Original)';
-                select.appendChild(defaultOpt);
-
-                designs.forEach(d => {
-                    if(d.id === 'default') return;
-                    const opt = document.createElement('option');
-                    opt.value = d.id;
-                    opt.textContent = d.name;
-                    select.appendChild(opt);
                 });
-                
-                // Always add Custom last
-                const customOpt = document.createElement('option');
-                customOpt.value = 'custom';
-                customOpt.textContent = 'Eigener Code';
-                select.appendChild(customOpt);
 
-                // Restore previous selection
-                if(previousValue) {
-                    select.value = previousValue;
-                }
-            }
-        } catch(e) {
-            console.warn("Could not load designs/designs.json, using fallback", e);
+                conn.on('close', () => {
+                    connections = connections.filter(c => c !== conn);
+                    if (connections.length === 0) {
+                        status.innerText = "Online (Warte...)";
+                        status.style.color = "orange";
+                    } else {
+                        status.innerText = `Verbunden (${connections.length})`;
+                    }
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                status.innerText = "Fehler!";
+                status.style.color = "red";
+            });
         }
-        
-        // 2. Load Default Source Code for Custom Editor
-        try {
-             const codeResp = await fetch('designs/default.html');
-             if(codeResp.ok) {
-                 DEFAULT_CODE = await codeResp.text();
-             } else {
-                 DEFAULT_CODE = "<div>Error loading default template</div>";
-             }
-        } catch(e) { console.error("Could not load default.html for custom code"); }
 
-        generate();
-    })();
-</script>
+        function broadcastState(payload) {
+            if (connections.length > 0) {
+                connections.forEach(conn => {
+                    const connOpen = conn.open || (conn._open); // PeerJS properties can be tricky check
+                    // Just try send
+                    try {
+                        conn.send(payload);
+                    } catch (e) { console.error(e); }
+                });
+            }
+        }
+
+        // --- ACCORDION & RESIZER LOGIC ---
+        function toggleAccordion(header) {
+            header.classList.toggle('active');
+            const content = header.nextElementSibling;
+            const chevron = header.querySelector('.chevron');
+
+            if (header.classList.contains('active')) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        }
+
+        // Resizer
+        const resizer = document.getElementById('dragMe');
+        const sidebar = document.getElementById('sidebar');
+        let isResizing = false;
+
+        if (resizer) {
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                // The sidebar is on the RIGHT. 
+                // So width = Window Width - Mouse X (approx)
+                // Or better: The container is flex row.
+                // Mouse X is closer to the resizing handle.
+                // If sidebar is right aligned:
+                // The handle is on the left of the sidebar.
+                // Width = ContainerRight - MouseX.
+
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                const newWidth = rect.right - e.clientX;
+
+                if (newWidth > 250 && newWidth < 800) {
+                    sidebar.style.width = newWidth + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                    document.body.style.userSelect = 'auto';
+                    saveSettings(); // Save sidebar width
+                }
+            });
+        }
+    </script>
+
+    <script>
+        // Initialize
+        (async function init() {
+            // 1. Load Designs dynamically
+            try {
+                const resp = await fetch('designs/designs.json');
+                // ... (rest of design loading)
+                if (resp.ok) {
+                    const designs = await resp.json();
+                    const select = document.getElementById('designStyle');
+                    const previousValue = select.value;
+
+                    // Clear existing options
+                    select.innerHTML = '';
+
+                    // Always add Default first
+                    const defaultOpt = document.createElement('option');
+                    defaultOpt.value = 'default';
+                    defaultOpt.textContent = 'Standard (Original)';
+                    select.appendChild(defaultOpt);
+
+                    designs.forEach(d => {
+                        if (d.id === 'default') return;
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        select.appendChild(opt);
+                    });
+
+                    // Always add Custom last
+                    const customOpt = document.createElement('option');
+                    customOpt.value = 'custom';
+                    customOpt.textContent = 'Eigener Code';
+                    select.appendChild(customOpt);
+
+                    // Restore previous selection
+                    if (previousValue) {
+                        select.value = previousValue;
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not load designs/designs.json, using fallback", e);
+            }
+
+            // 2. Load Default Source Code for Custom Editor
+            try {
+                const codeResp = await fetch('designs/default.html');
+                if (codeResp.ok) {
+                    DEFAULT_CODE = await codeResp.text();
+                } else {
+                    DEFAULT_CODE = "<div>Error loading default template</div>";
+                }
+            } catch (e) { console.error("Could not load default.html for custom code"); }
+
+            generate();
+        })();
+    </script>
 </body>
+
 </html>

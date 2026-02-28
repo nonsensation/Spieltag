@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intermission Board - Broadcast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0c0e12;
+            --text-color: #ffffff;
+            --accent-color: #ffffff;
+            --card-bg: rgba(20, 24, 33, 0.95);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --secondary-text: #94a3b8;
+            --home-primary: #ffffff;
+            --home-secondary: #000000;
+            --home-text: #000000;
+            --guest-primary: #ffffff;
+            --guest-secondary: #000000;
+            --guest-text: #000000;
+            --home-rgb: 255, 255, 255;
+            --guest-rgb: 255, 255, 255;
+        }
+
+        body {
+            font-family: 'Quantico', sans-serif;
+            background-color: transparent;
+            color: var(--text-color);
+            font-weight: 700;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        .container {
+            width: 95%;
+            height: 95%;
+            max-width: 1600px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 2px 20px;
+            background: linear-gradient(90deg, var(--home-secondary) 0%, rgba(30, 30, 30, 0.95) 25%, rgba(30, 30, 30, 0.95) 75%, var(--guest-secondary) 100%);
+            border-bottom: 4px solid var(--accent-color);
+            color: white;
+            text-align: center;
+        }
+
+        .header img {
+            max-width: 100px;
+            max-height: 80px;
+            object-fit: contain;
+            justify-self: center;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: clamp(1rem, 3vh, 2rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 0;
+            font-weight: 900;
+            font-size: 0.7rem;
+            margin-top: 5px;
+            letter-spacing: 0.2em;
+        }
+
+        .status-active {
+            background-color: #ef4444;
+        }
+
+        .status-intermission {
+            background-color: #10b981;
+        }
+
+        .status-finished {
+            background-color: #475569;
+        }
+
+        .view-container {
+            position: relative;
+            min-height: 0;
+            /* Flex fix */
+            width: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .card {
+            background: rgba(20, 20, 20, 0.7);
+            padding: 30px;
+            border-radius: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+            min-height: 0;
+            backdrop-filter: blur(8px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: clamp(1rem, 3vh, 1.3rem);
+            font-weight: 900;
+            color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-left: 5px solid var(--accent-color);
+            flex-shrink: 0;
+            letter-spacing: 0.1em;
+        }
+
+        .card-body {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+            min-height: 0;
+        }
+
+        .card-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.8rem, 2vh, 1.1rem);
+        }
+
+        th {
+            text-align: left;
+            color: var(--secondary-text);
+            padding: 10px 15px;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            border-bottom: 2px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            background: rgba(30, 30, 30, 0.9);
+            z-index: 10;
+        }
+
+        td {
+            padding: 4px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tr.highlight-home {
+            background: var(--home-secondary);
+            color: var(--home-text);
+            border-left: 6px solid var(--home-primary);
+        }
+
+        tr.highlight-home .points,
+        tr.highlight-home .meta-val,
+        tr.highlight-home .team-name {
+            color: var(--home-text);
+        }
+
+        tr.highlight-guest {
+            background: var(--guest-secondary);
+            color: var(--guest-text);
+            border-left: 6px solid var(--guest-primary);
+        }
+
+        tr.highlight-guest .points,
+        tr.highlight-guest .meta-val,
+        tr.highlight-guest .team-name {
+            color: var(--guest-text);
+        }
+
+        .rank {
+            font-weight: 900;
+            color: var(--secondary-text);
+            width: 40px;
+        }
+
+        .team-name {
+            font-weight: 700;
+        }
+
+        .meta-val {
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            width: 60px;
+        }
+
+        .points {
+            font-weight: 900;
+            color: var(--accent-color);
+            text-align: right;
+            width: 60px;
+        }
+
+        .list-item {
+            padding: 5px 10px;
+            background: rgba(60, 60, 60, 0.2);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: none;
+        }
+
+        #eventsContent .list-item {
+            padding: 3px 10px;
+            margin-bottom: 3px;
+        }
+
+        #eventsContent .item-logo {
+            height: clamp(1.8em, 4vh, 2.5em);
+        }
+
+        #eventsContent .list-item span {
+            font-size: 0.9em;
+        }
+
+        #eventsContent .player-name {
+            font-size: 0.75rem;
+        }
+
+        .period-header {
+            margin: 15px 0 8px;
+            font-size: 0.7rem;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .period-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .card-body {
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .list-item.home {
+            background: var(--home-secondary);
+            color: var(--home-text);
+            border-left: 8px solid var(--home-primary);
+        }
+
+        .list-item.home .event-score,
+        .list-item.home .time-badge,
+        .list-item.home .player-name,
+        .list-item.home .event-main span {
+            color: var(--home-text);
+        }
+
+        .list-item.guest {
+            background: var(--guest-secondary);
+            color: var(--guest-text);
+            border-left: 8px solid var(--guest-primary);
+        }
+
+        .list-item.guest .event-score,
+        .list-item.guest .time-badge,
+        .list-item.guest .player-name,
+        .list-item.guest .event-main span {
+            color: var(--guest-text);
+        }
+
+        .time-badge {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 8px;
+            border-radius: 0;
+            font-weight: 900;
+            font-size: 0.8rem;
+            min-width: 50px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .list-item.home .time-badge {
+            background: rgba(var(--home-rgb), 0.15);
+        }
+
+        .list-item.guest .time-badge {
+            background: rgba(var(--guest-rgb), 0.15);
+        }
+
+        .event-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-size: 0.8em;
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+
+        .event-score {
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
+        .schedule-date {
+            color: var(--secondary-text);
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .schedule-game {
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--secondary-text);
+            font-style: italic;
+        }
+
+        .item-logo {
+            height: clamp(3em, 8vh, 5.5em);
+            width: auto;
+            object-fit: contain;
+            vertical-align: middle;
+            margin-right: 5px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+        }
+
+        .team-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header" id="gameHeader">
+            <img id="homeLogo" src="" alt="" style="display:none">
+            <div class="header-content">
+                <h1 id="gameTitle">LADE SPIELDATEN...</h1>
+                <div id="gameStatus" class="status-badge hidden"></div>
+            </div>
+            <img id="guestLogo" src="" alt="" style="display:none">
+        </header>
+
+        <main class="view-container">
+            <div id="slide-events" class="slide card">
+                <h2>SPIELEREIGNISSE</h2>
+                <div class="card-body" id="eventsContent">
+                    <div class="loading-spinner">WARTE AUF DATEN...</div>
+                </div>
+            </div>
+
+            <div id="slide-table" class="slide card">
+                <h2>TABELLE</h2>
+                <div class="card-body" id="tableContent">
+                    <div class="loading-spinner">WIRD GELADEN...</div>
+                </div>
+            </div>
+
+            <div id="slide-scorers" class="slide card">
+                <h2>TOP-SPIELER</h2>
+                <div class="card-body" id="scorersContent">
+                    <div class="loading-spinner">WIRD GELADEN...</div>
+                </div>
+            </div>
+
+            <div id="slide-schedule" class="slide card">
+                <h2>ERGEBNISSE DES SPIELTAGS</h2>
+                <div class="card-body" id="scheduleContent">
+                    <div class="loading-spinner">WIRD GELADEN...</div>
+                </div>
+            </div>
+        </main>
+
+        <div id="activeView" class="hidden"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+        const isDev = urlParams.get('dev') === 'true';
+        const cycleInterval = parseInt(urlParams.get('cycle')) * 1000 || 10000;
+
+        const root = document.documentElement;
+        const setCol = (p, val) => { if (val) root.style.setProperty(p, decodeURIComponent(val)); };
+
+        setCol('--home-primary', urlParams.get('hp'));
+        setCol('--home-secondary', urlParams.get('hs'));
+        setCol('--home-text', urlParams.get('ht'));
+        setCol('--guest-primary', urlParams.get('gp'));
+        setCol('--guest-secondary', urlParams.get('gs'));
+        setCol('--guest-text', urlParams.get('gt'));
+
+        function hexToRgb(hex) {
+            if (!hex) return "255, 255, 255";
+            hex = hex.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const b = parseInt(hex, 16);
+            return isNaN(b) ? "255, 255, 255" : `${(b >> 16) & 255}, ${(b >> 8) & 255}, ${b & 255}`;
+        }
+        root.style.setProperty('--home-rgb', hexToRgb(urlParams.get('hp') || '#ffffff'));
+        root.style.setProperty('--home-secondary-rgb', hexToRgb(urlParams.get('hs') || '#000000'));
+        root.style.setProperty('--guest-rgb', hexToRgb(urlParams.get('gp') || '#ffffff'));
+        root.style.setProperty('--guest-secondary-rgb', hexToRgb(urlParams.get('gs') || '#000000'));
+
+        let homeLogoUrl = "";
+        let guestLogoUrl = "";
+        let leagueId = null;
+        let homeTeamName = "";
+        let guestTeamName = "";
+        let gamePlayers = { home: [], guest: [] };
+
+        let slideIndex = 0;
+        const slides = ['events', 'table', 'scorers', 'schedule'];
+        let cycleTimer = null;
+
+        if (!gameId) {
+            document.getElementById('gameTitle').innerText = "FEHLER: KEINE GAME-ID";
+        } else {
+            initBoard();
+        }
+
+        async function initBoard() {
+            await fetchMainData();
+            startCycling();
+            setInterval(fetchMainData, 30000);
+        }
+
+        function fixLogoUrl(url) {
+            if (!url) return '';
+            return url.startsWith('/') ? 'https://saisonmanager.de' + url : url;
+        }
+        async function fetchMainData() {
+            try {
+                const response = await fetch(`https://saisonmanager.de/api/v2/games/${gameId}.json`);
+                if (!response.ok) throw new Error("API Error");
+                const data = await response.json();
+
+                homeTeamName = data.home_team_name;
+                guestTeamName = data.guest_team_name;
+                leagueId = data.league_id;
+                gamePlayers = data.players || { home: [], guest: [] };
+
+                homeLogoUrl = fixLogoUrl(data.home_team_logo);
+                guestLogoUrl = fixLogoUrl(data.guest_team_logo);
+
+                const hLogo = document.getElementById('homeLogo');
+                const gLogo = document.getElementById('guestLogo');
+                if (homeLogoUrl) { hLogo.src = homeLogoUrl; hLogo.style.display = 'block'; }
+                if (guestLogoUrl) { gLogo.src = guestLogoUrl; gLogo.style.display = 'block'; }
+
+                updateHeader(data);
+                renderEvents(data.events);
+                if (leagueId) fetchLeagueData();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('gameTitle').innerText = "DATENFEHLER";
+            }
+        }
+
+        async function fetchLeagueData() {
+            try {
+                const [tableRes, scorerRes, scheduleRes] = await Promise.all([
+                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/table.json`),
+                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/scorer.json`),
+                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/game_days/current/schedule.json`)
+                ]);
+                if (tableRes.ok) renderTable(await tableRes.json());
+                if (scorerRes.ok) renderScorers(await scorerRes.json());
+                if (scheduleRes.ok) renderSchedule(await scheduleRes.json());
+            } catch (e) { console.warn("League fetch failed", e); }
+        }
+
+        function updateHeader(data) {
+            document.getElementById('gameTitle').innerText = `${homeTeamName} VS ${guestTeamName}`;
+            const badge = document.getElementById('gameStatus');
+            const status = data.ingame_status;
+            const isFinished = data.game_status === 'match_record_closed' || data.ended;
+            const isActive = ['period1', 'period2', 'period3', 'extratime', 'penalty_shots'].includes(status) && !isFinished;
+
+            if (isActive && !isDev) {
+                document.getElementById('gameHeader').classList.add('hidden');
+                document.getElementById('activeView').classList.remove('hidden');
+                document.querySelector('.view-container').classList.add('hidden');
+                clearTimeout(cycleTimer);
+            } else {
+                document.getElementById('gameHeader').classList.remove('hidden');
+                document.getElementById('activeView').classList.add('hidden');
+                document.querySelector('.view-container').classList.remove('hidden');
+                badge.classList.remove('hidden', 'status-active', 'status-intermission', 'status-finished');
+                badge.innerText = isFinished ? "BEENDET" : (data.current_period_title?.title?.toUpperCase() || "PAUSE");
+                badge.classList.add(isFinished ? 'status-finished' : 'status-intermission');
+            }
+        }
+
+        function getPlayerName(team, number) {
+            const p = (gamePlayers[team] || []).find(x => x.trikot_number == number);
+            return p ? `${p.player_firstname} ${p.player_name}` : "";
+        }
+
+        const trans = { 'goal': 'TOR', 'penalty': 'STRAFE', 'timeout': 'AUSZEIT' };
+
+        function renderEvents(events) {
+            const container = document.getElementById('eventsContent');
+            if (!events || events.length === 0) { container.innerHTML = "KEINE EREIGNISSE BISHER."; return; }
+            let lastP = "";
+            let html = "";
+            events.slice().reverse().forEach(e => {
+                const currentP = e.period_title?.title || (e.period_number ? `${e.period_number}. DRITTEL` : "");
+                if (currentP && currentP !== lastP) {
+                    html += `<div class="period-header">${currentP}</div>`;
+                    lastP = currentP;
+                }
+
+                const type = trans[e.event_type] || e.event_type_string || 'AKTION';
+                const pName = getPlayerName(e.event_team, e.number);
+                const logo = e.event_team === 'home' ? homeLogoUrl : (e.event_team === 'guest' ? guestLogoUrl : '');
+                const teamCls = e.event_team;
+
+                let details = "";
+                if (e.event_type === 'penalty') {
+                    const min = e.penalty_minutes || (e.minutes ? `${e.minutes}'` : '');
+                    const reason = e.penalty_reason || e.reason_string || "";
+                    if (min) details += ` (${min})`;
+                    if (reason) details += ` - ${reason}`;
+                }
+
+                html += `<div class="list-item ${teamCls}">
+                    <div class="time-badge">${e.time || '00:00'}</div>
+                    <div style="flex: 0 0 auto; display: flex; align-items: center;">
+                        ${logo ? `<img src="${logo}" class="item-logo">` : ''}
+                    </div>
+                    <div class="event-main">
+                        <span>${type}${e.number ? ' (#' + e.number + ')' : ''}${details}</span>
+                        ${pName ? `<span class="player-name">${pName}</span>` : ''}
+                    </div>
+                    ${e.event_type === 'goal' ? `<div class="event-score">${e.home_goals}:${e.guest_goals}</div>` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderTable(table) {
+            const container = document.getElementById('tableContent');
+            let html = `<table><thead><tr><th>#</th><th>TEAM</th><th class="meta-val">SP.</th><th class="meta-val">TORE</th><th class="points">PKT</th></tr></thead><tbody>`;
+            table.forEach(r => {
+                const cls = (r.team_name === homeTeamName) ? 'highlight-home' : (r.team_name === guestTeamName ? 'highlight-guest' : '');
+                const logo = (r.team_name === homeTeamName) ? homeLogoUrl : (r.team_name === guestTeamName ? guestLogoUrl : (r.logo ? fixLogoUrl(r.logo) : ''));
+                html += `<tr class="${cls}"><td class="rank">${r.position || '-'}</td><td class="team-name"><div class="team-cell">${logo ? `<img src="${logo}" class="item-logo">` : ''}${r.team_name}</div></td><td class="meta-val">${r.games}</td><td class="meta-val" style="font-size:0.8em; color:var(--secondary-text)">${r.goals_scored}:${r.goals_received}</td><td class="points">${r.points}</td></tr>`;
+            });
+            container.innerHTML = html + "</tbody></table>";
+        }
+
+        function renderScorers(scorers) {
+            const container = document.getElementById('scorersContent');
+            const h = scorers.filter(s => s.team_name === homeTeamName).sort((a, b) => b.points - a.points).slice(0, 3);
+            const g = scorers.filter(s => s.team_name === guestTeamName).sort((a, b) => b.points - a.points).slice(0, 3);
+            if (!h.length && !g.length) { container.innerHTML = "KEINE DATEN."; return; }
+            let html = `<table><thead><tr><th>TEAM</th><th>SPIELER</th><th class="meta-val">G</th><th class="meta-val">A</th><th class="points">PKT</th></tr></thead><tbody>`;
+            const row = (s, cls) => {
+                const logo = s.team_name === homeTeamName ? homeLogoUrl : guestLogoUrl;
+                return `<tr class="${cls}"><td style="font-weight:900; font-size:0.75em"><div class="team-cell">${logo ? `<img src="${logo}" class="item-logo">` : ''}</div></td><td class="team-name">${s.first_name} ${s.last_name}</td><td class="meta-val">${s.goals}</td><td class="meta-val">${s.assists}</td><td class="points">${s.goals + s.assists}</td></tr>`;
+            };
+            h.forEach(s => html += row(s, 'highlight-home'));
+            g.forEach(s => html += row(s, 'highlight-guest'));
+            container.innerHTML = html + "</tbody></table>";
+        }
+
+        function renderSchedule(games) {
+            const container = document.getElementById('scheduleContent');
+            if (!games || !games.length) { container.innerHTML = "KEINE WEITEREN SPIELE."; return; }
+            container.innerHTML = games.map(g => {
+                const s = g.result_string || (g.result ? `${g.result.home_goals}:${g.result.guest_goals}` : '-:-');
+                const hLogo = g.home_team_logo ? fixLogoUrl(g.home_team_logo) : '';
+                const gLogo = g.guest_team_logo ? fixLogoUrl(g.guest_team_logo) : '';
+
+                return `<div class="list-item">
+                    <div class="event-main">
+                        <div class="schedule-date">${g.date} | ${g.time} UHR</div>
+                        <div class="schedule-game">
+                            <span class="team-cell">${hLogo ? `<img src="${hLogo}" class="item-logo">` : ''}${g.home_team_name}</span>
+                            <span style="color:var(--secondary-text); padding:0 10px;">VS</span>
+                            <span class="team-cell">${gLogo ? `<img src="${gLogo}" class="item-logo">` : ''}${g.guest_team_name}</span>
+                        </div>
+                    </div>
+                    <div class="event-score">${s}</div>
+                </div>`;
+            }).join('');
+        }
+
+        let scrollTimer = null;
+        function showSlide(index) {
+            slideIndex = index % slides.length;
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            const active = document.getElementById(`slide-${slides[slideIndex]}`);
+            active.classList.add('active');
+
+            // Handle Scroll
+            cancelAnimationFrame(scrollTimer);
+            const content = active.querySelector('.card-body');
+            if (content) {
+                content.scrollTop = 0;
+                setTimeout(() => {
+                    const diff = content.scrollHeight - content.clientHeight;
+                    if (diff > 10) {
+                        const start = performance.now();
+                        const duration = cycleInterval - 2000;
+                        function step(now) {
+                            const elapsed = now - start;
+                            const progress = Math.min(elapsed / duration, 1);
+                            content.scrollTop = progress * diff;
+                            if (progress < 1) scrollTimer = requestAnimationFrame(step);
+                        }
+                        scrollTimer = requestAnimationFrame(step);
+                    }
+                }, 1000);
+            }
+
+            clearTimeout(cycleTimer);
+            cycleTimer = setTimeout(() => showSlide(slideIndex + 1), cycleInterval);
+        }
+        function startCycling() { showSlide(0); }
+    </script>
+</body>
+
+</html>
