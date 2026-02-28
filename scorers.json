@@ -1,0 +1,23 @@
+{
+  "games": 11,
+  "goals": 21,
+  "assists": 7,
+  "penalty_2": 0,
+  "penalty_2and2": 0,
+  "penalty_5": 0,
+  "penalty_10": 0,
+  "penalty_ms_tech": 0,
+  "penalty_ms_full": 0,
+  "penalty_ms1": 0,
+  "penalty_ms2": 0,
+  "penalty_ms3": 0,
+  "player_id": 19132,
+  "team_id": 7163,
+  "team_name": "USV TU Dresden II",
+  "first_name": "Philipp",
+  "last_name": "Weiss",
+  "image": null,
+  "image_small": null,
+  "sort": 0,
+  "position": 1
+}
