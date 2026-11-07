@@ -22,6 +22,7 @@ Darin können Sie HTML und CSS komplett selbst schreiben.
 Das System füllt die Daten automatisch in HTML-Elemente mit den entsprechenden IDs:
 
 *   `period`: Aktueller Spielabschnitt (z.B. 1. Drittel)
+*   `competition`: Liga und Spieltag (z.B. "Herren VL Ost · 7. Spieltag")
 *   `time`: Spielzeit (falls verfügbar)
 *   `img_home`: Logo Heimteam (`src` Attribut)
 *   `name_home`: Name Heimteam

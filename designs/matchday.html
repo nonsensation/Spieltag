@@ -42,11 +42,14 @@
         border-radius: 0.24em;
     }
 
-    .brand {
+    .competition {
         justify-self: center;
-        color: #6e6e79;
-        letter-spacing: 0.28em;
+        max-width: 28em;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
+        color: #a9a9b2;
+        letter-spacing: 0.16em;
     }
 
     .time {
@@ -151,7 +154,7 @@
 <div class="scoreboard">
     <div class="header">
         <div class="period" id="period">1. Drittel</div>
-        <div class="brand">Spieltag</div>
+        <div class="competition" id="competition"></div>
         <div class="time" id="time" style="display:none">00:00</div>
     </div>
 

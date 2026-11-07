@@ -186,6 +186,13 @@
                 setTextIfChanged('score_away', gGoals);
                 setTextIfChanged('period', period);
 
+                // Optional competition line (design must provide #competition)
+                const competition = [
+                    data.league_name || data.league_short_name,
+                    data.game_day?.title
+                ].filter(Boolean).join(' · ');
+                if (competition) setTextIfChanged('competition', competition);
+
                 // Update Names (Only if NOT overridden via URL)
                 if (!config.home.name && data.home_team_name) {
                     setTextIfChanged('name_home', data.home_team_name);
