@@ -1,0 +1,249 @@
+<style>
+    .ts {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        background: #ece7de;
+        color: #111;
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    }
+
+    .ts * {
+        box-sizing: border-box;
+    }
+
+    .ts::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #0e1116;
+        clip-path: polygon(0 0, 68% 0, 32% 100%, 0 100%);
+        z-index: 0;
+    }
+
+    .ts-line {
+        position: absolute;
+        inset: 0;
+        background: #ff5a36;
+        clip-path: polygon(68% 0, 68.55% 0, 32.55% 100%, 32% 100%);
+        z-index: 0;
+    }
+
+    .ts-top-left,
+    .ts-top-right,
+    .ts-home,
+    .ts-away,
+    .ts-center,
+    .ts-bottom-left,
+    .ts-bottom-right {
+        position: absolute;
+        z-index: 1;
+    }
+
+    .ts-top-left {
+        left: 76px;
+        top: 58px;
+        width: 480px;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    .ts-top-right {
+        right: 76px;
+        top: 58px;
+        width: 360px;
+        text-align: right;
+        color: #171512;
+        white-space: nowrap;
+    }
+
+    .ts-league {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .ts-day,
+    .ts-date {
+        margin-top: 4px;
+        font-family: 'Barlow', sans-serif;
+        font-size: 17px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.68;
+    }
+
+    .ts-time {
+        font-family: 'Barlow', sans-serif;
+        font-size: 30px;
+        font-weight: 700;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
+    .ts-home,
+    .ts-away {
+        top: 50%;
+        transform: translateY(-50%);
+        width: 410px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 26px;
+    }
+
+    .ts-home {
+        left: 82px;
+        color: #fff;
+    }
+
+    .ts-away {
+        right: 82px;
+        color: #171512;
+    }
+
+    .ts-plate {
+        width: 250px;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .ts-away .ts-plate {
+        background: rgba(0, 0, 0, 0.06);
+    }
+
+    .ts-logo {
+        max-width: 195px;
+        max-height: 195px;
+        object-fit: contain;
+    }
+
+    .ts-name {
+        width: 100%;
+        max-width: 410px;
+        font-size: 54px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ts-center {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 190px;
+        height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #ff5a36;
+        color: #0e1116;
+        box-shadow: 0 0 0 10px rgba(255, 90, 54, 0.18);
+    }
+
+    .ts-vs {
+        font-size: 72px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+    }
+
+    .ts-score {
+        display: none;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 58px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .ts-colon {
+        opacity: 0.45;
+    }
+
+    .ts-bottom-left {
+        left: 76px;
+        bottom: 56px;
+        width: 370px;
+        color: rgba(255, 255, 255, 0.72);
+        white-space: nowrap;
+    }
+
+    .ts-bottom-right {
+        right: 76px;
+        bottom: 56px;
+        width: 300px;
+        text-align: right;
+        color: #171512;
+        white-space: nowrap;
+        font-family: 'Barlow', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+    }
+
+    .ts-arena {
+        max-width: 370px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: 'Barlow', sans-serif;
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="ts">
+    <div class="ts-line"></div>
+
+    <div class="ts-top-left">
+        <div class="ts-league" id="league">Herren VL Ost</div>
+        <div class="ts-day" id="game_day">7. Spieltag</div>
+    </div>
+
+    <div class="ts-top-right">
+        <div class="ts-date" id="date">So 07.12.2025</div>
+        <div class="ts-time" id="time">14:30</div>
+    </div>
+
+    <div class="ts-home">
+        <div class="ts-plate">
+            <img class="ts-logo" id="img_home" src="" alt="">
+        </div>
+        <div class="ts-name" id="name_home">Home Team</div>
+    </div>
+
+    <div class="ts-center">
+        <div class="ts-vs" id="center_vs">VS</div>
+        <div class="ts-score" id="center_score">
+            <span id="score_home">0</span><span class="ts-colon">:</span><span id="score_away">0</span>
+        </div>
+    </div>
+
+    <div class="ts-away">
+        <div class="ts-plate">
+            <img class="ts-logo" id="img_away" src="" alt="">
+        </div>
+        <div class="ts-name" id="name_away">Away Team</div>
+    </div>
+
+    <div class="ts-bottom-left">
+        <div class="ts-arena" id="arena">Universitätssporthalle</div>
+    </div>
+
+    <div class="ts-bottom-right">Spieltag</div>
+</div>

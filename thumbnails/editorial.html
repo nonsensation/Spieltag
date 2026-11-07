@@ -1,0 +1,199 @@
+<style>
+    .te {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        background: #f4f0e7;
+        color: #171512;
+        font-family: 'Barlow', sans-serif;
+    }
+
+    .te * {
+        box-sizing: border-box;
+    }
+
+    .te::before,
+    .te::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(23, 21, 18, 0.75);
+        z-index: 0;
+    }
+
+    .te::before {
+        top: 120px;
+    }
+
+    .te::after {
+        bottom: 120px;
+    }
+
+    .te-top,
+    .te-main,
+    .te-bottom {
+        position: absolute;
+        z-index: 1;
+    }
+
+    .te-top {
+        left: 70px;
+        right: 70px;
+        top: 56px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        font-size: 17px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #5b564d;
+        white-space: nowrap;
+    }
+
+    .te-league {
+        font-weight: 700;
+        color: #c8102e;
+    }
+
+    .te-day {
+        margin-left: 12px;
+    }
+
+    .te-when {
+        text-align: right;
+    }
+
+    .te-main {
+        left: 70px;
+        right: 70px;
+        top: 160px;
+        bottom: 152px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .te-team {
+        width: 470px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 26px;
+    }
+
+    .te-logo {
+        width: 190px;
+        height: 190px;
+        object-fit: contain;
+    }
+
+    .te-name {
+        width: 100%;
+        max-width: 470px;
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 74px;
+        font-weight: 800;
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .te-center {
+        width: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .te-vs {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-style: italic;
+        font-size: 54px;
+        color: #c8102e;
+    }
+
+    .te-score {
+        display: none;
+        align-items: baseline;
+        gap: 10px;
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        font-size: 86px;
+        font-weight: 700;
+        line-height: 1;
+        color: #171512;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .te-colon {
+        color: #c8102e;
+    }
+
+    .te-bottom {
+        left: 70px;
+        right: 70px;
+        bottom: 56px;
+        display: flex;
+        white-space: nowrap;
+        justify-content: space-between;
+        font-size: 15px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #6c675e;
+    }
+
+    .te-arena {
+        flex: 0 0 auto;
+        width: 640px;
+        max-width: 640px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .te-brand {
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        color: #171512;
+    }
+</style>
+
+<div class="te">
+    <div class="te-top">
+        <div>
+            <span class="te-league" id="league">Herren VL Ost</span><span class="te-day" id="game_day">7. Spieltag</span>
+        </div>
+        <div class="te-when">
+            <span id="date">So 07.12.2025</span> &nbsp;·&nbsp; <span id="time">14:30</span>
+        </div>
+    </div>
+
+    <div class="te-main">
+        <div class="te-team">
+            <img class="te-logo" id="img_home" src="" alt="">
+            <div class="te-name" id="name_home">Home Team</div>
+        </div>
+
+        <div class="te-center">
+            <div class="te-vs" id="center_vs">VS</div>
+            <div class="te-score" id="center_score">
+                <span id="score_home">0</span><span class="te-colon">:</span><span id="score_away">0</span>
+            </div>
+        </div>
+
+        <div class="te-team">
+            <img class="te-logo" id="img_away" src="" alt="">
+            <div class="te-name" id="name_away">Away Team</div>
+        </div>
+    </div>
+
+    <div class="te-bottom">
+        <div class="te-arena" id="arena">Universitätssporthalle</div>
+        <div class="te-brand">Spieltag</div>
+    </div>
+</div>

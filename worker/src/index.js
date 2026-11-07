@@ -19,12 +19,15 @@
 
 const UPSTREAM = "https://saisonmanager.de";
 const SESSION_ENDPOINT = `${UPSTREAM}/api/v2/public_session`;
-const ALLOWED_PREFIX = "/api/v2/";
+const ALLOWED_PREFIXES = ["/api/v2/", "/api/storage/"];
 
 // How long (seconds) a JSON response may be served from the edge cache.
 // Keeps polling scoreboards from hammering saisonmanager and from burning
 // the per-session rate limit (300 requests/minute).
 const CACHE_TTL_SECONDS = 3;
+
+// Team logos / uploaded images are static, so cache them much longer.
+const ASSET_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
 // Module-scoped cache; one per Worker isolate.
 let session = null;
@@ -147,9 +150,12 @@ export default {
       );
     }
 
-    if (!url.pathname.startsWith(ALLOWED_PREFIX)) {
-      return errorResponse("Only /api/v2/* is proxied", 404, request, env);
+    if (!ALLOWED_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
+      return errorResponse("Only /api/v2/* and /api/storage/* are proxied", 404, request, env);
     }
+
+    const isAsset = url.pathname.startsWith("/api/storage/");
+    const ttl = isAsset ? ASSET_CACHE_TTL_SECONDS : CACHE_TTL_SECONDS;
 
     const cache = caches.default;
     const cacheKey = new Request(url.toString(), { method: "GET" });
@@ -160,7 +166,7 @@ export default {
 
       if (response.ok) {
         response = new Response(response.body, response);
-        response.headers.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
+        response.headers.set("Cache-Control", `public, max-age=${ttl}`);
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
       }
     }

@@ -12,6 +12,7 @@ Repository: [github.com/nonsensation/Spieltag](https://github.com/nonsensation/S
 *   **Spiel laden**: Geben Sie eine Spiel-ID von saisonmanager.de ein, um automatisch Teamdaten und Logos zu laden.
 *   **QR Code**: Generiert automatisch einen QR-Code für die erstellte Scoreboard-URL, ideal für OBS oder mobile Geräte.
 *   **OBS Browser Source**: Die generierte URL kann direkt als Browser-Quelle in OBS Studio verwendet werden.
+*   **Thumbnail Generator**: Erstellt 16:9-Vorschaubilder aus Spiel-Daten – mit drei Designs, eigenem HTML-Code und PNG-Export (`thumbnail.html`).
 
 ## Eigener Code (Custom Code)
 
@@ -66,6 +67,23 @@ Deshalb liegt in [`worker/`](worker/) ein kleiner Cloudflare Worker, der die Anf
 
 Zum Testen ohne Deploy kann die Proxy-URL auch per URL-Parameter übergeben werden:
 `index.html?api=https://spieltag-api.<dein-subdomain>.workers.dev`
+
+## Thumbnail Generator
+
+[`thumbnail.html`](thumbnail.html) erzeugt 16:9-Vorschaubilder (1280 × 720) für ein Spiel:
+
+*   Drei Designs: **Broadcast**, **Editorial**, **Split**
+*   **Eigener Code**: HTML/CSS einfügen und über die gleichen IDs wie beim Scoreboard befüllen
+*   Umschalter zwischen **VS** und dem Spielergebnis
+*   **PNG-Export** in 2× Auflösung (2560 × 1440)
+*   Responsive Vorschau; die Bühne skaliert automatisch auf die verfügbare Breite
+
+Die Team-Logos werden in der Vorschau direkt geladen. Für den PNG-Export müssen sie über den Worker geladen werden (CORS), daher proxiet der Worker zusätzlich `/api/storage/*`. Nach einem Update des Workers einmal neu deployen:
+
+```bash
+cd worker
+npx wrangler deploy
+```
 
 ## Credits
 

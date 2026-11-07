@@ -25,6 +25,8 @@ request server-side:
 - It adds CORS headers so the static page can read the JSON.
 - It caches responses for 3 seconds at the edge to absorb polling traffic.
 - It refreshes the session automatically on `401 public_session_required`.
+- It also proxies `GET /api/storage/...` (team logos) with CORS, so the
+  Thumbnail Generator can export PNGs with logos via `<canvas>`.
 
 No API key and no secrets are required.
 
@@ -66,6 +68,11 @@ Commit and push. Done.
 curl https://spieltag-api.<your-subdomain>.workers.dev/health
 curl https://spieltag-api.<your-subdomain>.workers.dev/api/v2/games/42941.json
 ```
+
+If you already deployed the Worker before the Thumbnail Generator existed,
+redeploy it once (`npx wrangler deploy`) so `/api/storage/*` is proxied too.
+Without that, the thumbnail preview still works (logos load directly), but the
+PNG export cannot embed the logos.
 
 You can also test the site without redeploying by appending `?api=`:
 

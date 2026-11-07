@@ -1,0 +1,238 @@
+<style>
+    .tb {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        background: #080b10;
+        color: #fff;
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    }
+
+    .tb * {
+        box-sizing: border-box;
+    }
+
+    .tb::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(900px 520px at 12% 18%, rgba(42, 94, 126, 0.32), transparent 65%),
+            radial-gradient(900px 520px at 88% 82%, rgba(122, 76, 28, 0.26), transparent 65%);
+        z-index: 0;
+    }
+
+    .tb::after {
+        content: '';
+        position: absolute;
+        width: 900px;
+        height: 900px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        z-index: 0;
+    }
+
+    .tb-top,
+    .tb-main,
+    .tb-bottom {
+        position: absolute;
+        z-index: 1;
+    }
+
+    .tb-top {
+        left: 80px;
+        right: 80px;
+        top: 62px;
+        display: flex;
+        white-space: nowrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .tb-league {
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #f3c969;
+    }
+
+    .tb-day {
+        margin-top: 6px;
+        font-family: 'Barlow', sans-serif;
+        font-size: 19px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #9aa6b2;
+    }
+
+    .tb-when {
+        text-align: right;
+        font-family: 'Barlow', sans-serif;
+    }
+
+    .tb-date {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #e6e9ee;
+    }
+
+    .tb-time {
+        margin-top: 2px;
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+    }
+
+    .tb-main {
+        left: 80px;
+        right: 80px;
+        top: 205px;
+        bottom: 170px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .tb-team {
+        width: 430px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+    }
+
+    .tb-logo {
+        width: 250px;
+        height: 250px;
+        object-fit: contain;
+        filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.55));
+    }
+
+    .tb-name {
+        width: 100%;
+        max-width: 430px;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tb-center {
+        width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tb-vs {
+        width: 170px;
+        height: 170px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(243, 201, 105, 0.55);
+        border-radius: 50%;
+        background: rgba(243, 201, 105, 0.06);
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: #f3c969;
+    }
+
+    .tb-score {
+        display: none;
+        align-items: baseline;
+        justify-content: center;
+        gap: 12px;
+        font-size: 120px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .tb-colon {
+        color: #f3c969;
+    }
+
+    .tb-bottom {
+        left: 80px;
+        right: 80px;
+        bottom: 58px;
+        display: flex;
+        white-space: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        font-family: 'Barlow', sans-serif;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #8d99a6;
+    }
+
+    .tb-arena {
+        flex: 0 0 auto;
+        width: 640px;
+        max-width: 640px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tb-brand {
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        color: #f3c969;
+    }
+</style>
+
+<div class="tb">
+    <div class="tb-top">
+        <div>
+            <div class="tb-league" id="league">Herren VL Ost</div>
+            <div class="tb-day" id="game_day">7. Spieltag</div>
+        </div>
+        <div class="tb-when">
+            <div class="tb-date" id="date">So 07.12.2025</div>
+            <div class="tb-time" id="time">14:30</div>
+        </div>
+    </div>
+
+    <div class="tb-main">
+        <div class="tb-team">
+            <img class="tb-logo" id="img_home" src="" alt="">
+            <div class="tb-name" id="name_home">Home Team</div>
+        </div>
+
+        <div class="tb-center">
+            <div class="tb-vs" id="center_vs">VS</div>
+            <div class="tb-score" id="center_score">
+                <span id="score_home">0</span><span class="tb-colon">:</span><span id="score_away">0</span>
+            </div>
+        </div>
+
+        <div class="tb-team">
+            <img class="tb-logo" id="img_away" src="" alt="">
+            <div class="tb-name" id="name_away">Away Team</div>
+        </div>
+    </div>
+
+    <div class="tb-bottom">
+        <div class="tb-arena" id="arena">Universitätssporthalle</div>
+        <div class="tb-brand">Spieltag</div>
+    </div>
+</div>

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thumbnail Generator – Spieltag</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #eef0f3;
+            --card: #ffffff;
+            --text: #1c2026;
+            --muted: #6b7280;
+            --line: #dfe3e8;
+            --blue: #0b6bcb;
+            --blue-hover: #0959ab;
+            --danger: #c62828;
+            --ok: #1b7f3a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 24px;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .app-brand-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: var(--blue);
+            color: #fff;
+            font-size: 0.8rem;
+        }
+
+        .app-header a {
+            color: var(--muted);
+            font-size: 0.86rem;
+            text-decoration: none;
+        }
+
+        .app-header a:hover {
+            color: var(--blue);
+        }
+
+        .app-main {
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1560px;
+            margin: 0 auto;
+            padding: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 980px) {
+            .app-main {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        @media (max-width: 980px) {
+            .panel {
+                position: static;
+            }
+        }
+
+        .panel h1 {
+            margin: 0 0 4px;
+            font-size: 1.25rem;
+        }
+
+        .subtitle {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field>label,
+        .field-head label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #444b55;
+        }
+
+        .field-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .field-head label {
+            margin-bottom: 6px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .row input {
+            flex: 1;
+        }
+
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+        }
+
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid rgba(11, 107, 203, 0.25);
+            border-color: var(--blue);
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            white-space: pre;
+            tab-size: 2;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: #eef1f5;
+            color: var(--text);
+            font: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #e2e7ee;
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: progress;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-hover);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: var(--line);
+        }
+
+        .btn-ghost:hover {
+            background: #f4f6f9;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.76rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 4px 0 18px;
+            font-size: 0.86rem;
+            color: #3c434c;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .check input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: var(--blue);
+        }
+
+        .status {
+            margin-top: 8px;
+            min-height: 1.2em;
+            font-size: 0.8rem;
+            color: var(--ok);
+            line-height: 1.4;
+        }
+
+        .status.error {
+            color: var(--danger);
+        }
+
+        .hint {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .hint code {
+            background: #f1f4f8;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 0 4px;
+            font-size: 0.72rem;
+        }
+
+        .help {
+            margin-top: 18px;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            font-size: 0.8rem;
+            color: #4b525c;
+        }
+
+        .help summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .help ul {
+            margin: 10px 0 0;
+            padding-left: 18px;
+            line-height: 1.7;
+        }
+
+        .help code {
+            background: #f1f4f8;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 0 4px;
+            font-size: 0.73rem;
+        }
+
+        .preview-panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            min-width: 0;
+        }
+
+        .preview-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 2px 10px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .preview-head strong {
+            color: var(--text);
+            font-size: 0.86rem;
+        }
+
+        .preview-frame {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #0c0e12;
+            background-image:
+                linear-gradient(45deg, #14171d 25%, transparent 25%),
+                linear-gradient(-45deg, #14171d 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #14171d 75%),
+                linear-gradient(-45deg, transparent 75%, #14171d 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+        }
+
+        #stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1280px;
+            height: 720px;
+            transform-origin: top left;
+            background: transparent;
+        }
+
+        .preview-hint {
+            margin: 10px 2px 0;
+            color: var(--muted);
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .stage-empty {
+            width: 1280px;
+            height: 720px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0d1117;
+            color: #8d99a6;
+            font-family: 'Barlow', sans-serif;
+            font-size: 22px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="app-brand">
+            <span class="app-brand-mark">S</span>
+            <span>Spieltag</span>
+        </div>
+        <a href="index.html">← Scoreboard Generator</a>
+    </header>
+
+    <main class="app-main">
+        <aside class="panel">
+            <h1>Thumbnail Generator</h1>
+            <p class="subtitle">16:9-Vorschau aus den saisonmanager-Spieldaten. Als PNG exportieren oder als OBS-Quelle
+                verwenden.</p>
+
+            <div class="field">
+                <label for="gameId">Spiel ID (saisonmanager.de)</label>
+                <div class="row">
+                    <input type="number" id="gameId" value="42941" min="1" inputmode="numeric">
+                    <button type="button" id="loadGame" class="btn btn-primary">Laden</button>
+                </div>
+                <div class="status" id="status" role="status">Bereit.</div>
+            </div>
+
+            <div class="field">
+                <label for="designSelect">Design</label>
+                <select id="designSelect">
+                    <option value="broadcast">Broadcast</option>
+                    <option value="editorial">Editorial</option>
+                    <option value="split">Split</option>
+                    <option value="custom">Eigener Code</option>
+                </select>
+            </div>
+
+            <div class="field" id="customWrap" hidden>
+                <div class="field-head">
+                    <label for="customCode">HTML / CSS</label>
+                    <button type="button" id="loadExample" class="btn btn-ghost btn-sm">Vorlage einfügen</button>
+                </div>
+                <textarea id="customCode" spellcheck="false"
+                    placeholder="HTML-Code einfügen (1280 × 720 px) …"></textarea>
+                <p class="hint">
+                    Die Bühne ist <strong>1280 × 720 px</strong>. Fülle Elemente über die IDs
+                    <code>name_home</code>, <code>name_away</code>, <code>img_home</code>, <code>img_away</code>,
+                    <code>league</code>, <code>game_day</code>, <code>date</code>, <code>time</code>,
+                    <code>arena</code>.
+                </p>
+            </div>
+
+            <label class="check">
+                <input type="checkbox" id="showResult">
+                <span>Ergebnis statt „VS“ anzeigen</span>
+            </label>
+
+            <button type="button" id="download" class="btn btn-primary btn-block">PNG herunterladen</button>
+            <p class="hint">Export in 2× Auflösung: <strong>2560 × 1440 px</strong>. Logos werden dafür über den Worker
+                geladen (<code>/api/storage/*</code> – siehe <code>worker/</code>).</p>
+
+            <details class="help">
+                <summary>Verfügbare IDs für eigenen Code</summary>
+                <ul>
+                    <li><code>name_home</code>, <code>name_away</code></li>
+                    <li><code>short_home</code>, <code>short_away</code></li>
+                    <li><code>img_home</code>, <code>img_away</code> (Logo-URL)</li>
+                    <li><code>league</code>, <code>league_short</code>, <code>game_day</code></li>
+                    <li><code>date</code>, <code>time</code>, <code>arena</code></li>
+                    <li><code>score_home</code>, <code>score_away</code>, <code>result_string</code></li>
+                    <li><code>period</code>, <code>game_status</code></li>
+                    <li><code>center_vs</code>, <code>center_score</code> (werden beim Ergebnis-Toggle umgeschaltet)</li>
+                </ul>
+            </details>
+        </aside>
+
+        <section class="preview-panel">
+            <div class="preview-head">
+                <strong>Vorschau</strong>
+                <span>16:9 · skaliert automatisch</span>
+            </div>
+            <div class="preview-frame" id="previewFrame">
+                <div id="stage"></div>
+            </div>
+            <p class="preview-hint">Der Export erfolgt immer in 1280 × 720 px (2× = 2560 × 1440 px). Team-Logos
+                werden für den PNG-Export über den API-Proxy geladen.</p>
+        </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var STAGE_W = 1280;
+            var STAGE_H = 720;
+            var DEFAULT_GAME = '42941';
+
+            var LS = {
+                game: 'spieltagThumbGame',
+                design: 'spieltagThumbDesign',
+                custom: 'spieltagThumbCustom',
+                result: 'spieltagThumbResult'
+            };
+
+            var store = {
+                get: function (key) {
+                    try { return localStorage.getItem(key); } catch (e) { return null; }
+                },
+                set: function (key, value) {
+                    try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+                }
+            };
+
+            var el = {
+                gameId: document.getElementById('gameId'),
+                loadGame: document.getElementById('loadGame'),
+                design: document.getElementById('designSelect'),
+                customWrap: document.getElementById('customWrap'),
+                customCode: document.getElementById('customCode'),
+                loadExample: document.getElementById('loadExample'),
+                showResult: document.getElementById('showResult'),
+                download: document.getElementById('download'),
+                status: document.getElementById('status'),
+                frame: document.getElementById('previewFrame'),
+                stage: document.getElementById('stage')
+            };
+
+            var urlParams = new URLSearchParams(window.location.search);
+
+            var state = {
+                gameId: urlParams.get('id') || store.get(LS.game) || DEFAULT_GAME,
+                design: urlParams.get('design') || store.get(LS.design) || 'broadcast',
+                customCode: store.get(LS.custom) || '',
+                showResult: urlParams.get('result') === '1' || store.get(LS.result) === '1',
+                game: null,
+                renderId: 0,
+                debounce: null
+            };
+
+            var designCache = new Map();
+
+            var CUSTOM_EXAMPLE = [
+                '<style>',
+                "  .my-thumb { width:1280px; height:720px; background:#0d1117; color:#fff;",
+                "    font-family:'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform:uppercase;",
+                '    display:flex; flex-direction:column; justify-content:space-between;',
+                '    padding:64px 76px; box-sizing:border-box; }',
+                '  .my-thumb .top, .my-thumb .bottom { display:flex; justify-content:space-between;',
+                "    font-family:'Barlow', sans-serif; font-size:18px; letter-spacing:.14em; color:#9aa6b2; }",
+                '  .my-thumb .top strong { color:#f3c969; }',
+                '  .my-thumb .main { display:flex; align-items:center; justify-content:space-between; gap:40px; }',
+                '  .my-thumb .team { width:440px; display:flex; flex-direction:column; align-items:center; gap:24px; }',
+                '  .my-thumb .team img { width:220px; height:220px; object-fit:contain; }',
+                '  .my-thumb .name { width:100%; font-size:60px; font-weight:700; text-align:center;',
+                '    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
+                '  .my-thumb .vs { font-size:96px; font-weight:700; color:#f3c969; }',
+                '  .my-thumb .score { display:none; font-size:72px; font-weight:700; }',
+                '</style>',
+                '<div class="my-thumb">',
+                '  <div class="top">',
+                '    <span><strong id="league"></strong> · <span id="game_day"></span></span>',
+                '    <span><span id="date"></span> · <span id="time"></span></span>',
+                '  </div>',
+                '  <div class="main">',
+                '    <div class="team">',
+                '      <img id="img_home" alt="">',
+                '      <div class="name" id="name_home"></div>',
+                '    </div>',
+                '    <div>',
+                '      <div class="vs" id="center_vs">VS</div>',
+                '      <div class="score" id="center_score">',
+                '        <span id="score_home">0</span> : <span id="score_away">0</span>',
+                '      </div>',
+                '    </div>',
+                '    <div class="team">',
+                '      <img id="img_away" alt="">',
+                '      <div class="name" id="name_away"></div>',
+                '    </div>',
+                '  </div>',
+                '  <div class="bottom"><span id="arena"></span><span>Spieltag</span></div>',
+                '</div>'
+            ].join('\n');
+
+            function setStatus(message, isError) {
+                el.status.textContent = message;
+                el.status.classList.toggle('error', !!isError);
+            }
+
+            function toggleCustomPanel() {
+                el.customWrap.hidden = state.design !== 'custom';
+            }
+
+            function formatDate(value) {
+                if (!value) return '';
+                var d = new Date(value + 'T12:00:00');
+                if (isNaN(d.getTime())) return value;
+                var weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'short' })
+                    .format(d).replace('.', '').toUpperCase();
+                var day = String(d.getDate()).padStart(2, '0');
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                return weekday + ' ' + day + '.' + month + '.' + d.getFullYear();
+            }
+
+            function directImage(path) {
+                if (!path) return '';
+                if (/^https?:\/\//i.test(path)) return path;
+                return 'https://saisonmanager.de' + (path.charAt(0) === '/' ? path : '/' + path);
+            }
+
+            function proxyImage(path) {
+                if (!path) return '';
+                if (/^https?:\/\//i.test(path)) return path;
+                if (path.charAt(0) === '/') return window.spieltagApiUrl(path);
+                return path;
+            }
+
+            function setText(id, value) {
+                var node = el.stage.querySelector('#' + id);
+                if (!node) return;
+                node.textContent = value === null || value === undefined ? '' : String(value);
+            }
+
+            function setImage(id, src) {
+                var img = el.stage.querySelector('#' + id);
+                if (!img) return;
+                if (!src) {
+                    img.removeAttribute('src');
+                    img.style.visibility = 'hidden';
+                    return;
+                }
+                // Display directly; the proxy + crossOrigin is only needed for PNG export.
+                img.removeAttribute('crossorigin');
+                img.style.visibility = '';
+                img.src = src;
+            }
+
+            function populate(game) {
+                setText('league', game.league_name || game.league_short_name || '');
+                setText('league_short', game.league_short_name || '');
+                setText('game_day', game.game_day ? game.game_day.title : '');
+                setText('date', formatDate(game.date));
+                setText('time', game.start_time || '');
+                setText('arena', game.arena_name || game.arena_short || '');
+
+                setText('name_home', game.home_team_name || '');
+                setText('name_away', game.guest_team_name || '');
+                setText('short_home', game.home_team_short_name || '');
+                setText('short_away', game.guest_team_short_name || '');
+
+                setText('score_home', game.result ? (game.result.home_goals || 0) : 0);
+                setText('score_away', game.result ? (game.result.guest_goals || 0) : 0);
+                setText('result_string', game.result_string || '');
+                setText('period', game.current_period_title ? game.current_period_title.title : '');
+                setText('game_status', game.game_status || '');
+
+                setImage('img_home', directImage(game.home_team_logo));
+                setImage('img_away', directImage(game.guest_team_logo));
+            }
+
+            function applyResultMode() {
+                var vs = el.stage.querySelector('#center_vs');
+                var score = el.stage.querySelector('#center_score');
+                if (vs) vs.style.display = state.showResult ? 'none' : '';
+                if (score) score.style.display = state.showResult ? 'flex' : 'none';
+            }
+
+            function fitName(node, minSize) {
+                if (!node) return;
+                node.style.fontSize = '';
+                var size = parseFloat(window.getComputedStyle(node).fontSize) || 64;
+                var guard = 0;
+                while (node.scrollWidth > node.clientWidth - 2 && size > minSize && guard < 80) {
+                    size -= 1;
+                    node.style.fontSize = size + 'px';
+                    guard += 1;
+                }
+            }
+
+            function fitNames() {
+                if (state.design === 'custom') return;
+                fitName(el.stage.querySelector('#name_home'), 26);
+                fitName(el.stage.querySelector('#name_away'), 26);
+            }
+
+            function applyScale() {
+                var width = el.frame.clientWidth;
+                if (!width) return;
+                el.stage.style.transform = 'scale(' + (width / STAGE_W) + ')';
+            }
+
+            async function getDesignHtml() {
+                if (state.design === 'custom') {
+                    if (!state.customCode.trim()) {
+                        return '<div class="stage-empty">Eigenen HTML-Code eingeben oder „Vorlage einfügen“ wählen.</div>';
+                    }
+                    return state.customCode;
+                }
+
+                if (designCache.has(state.design)) return designCache.get(state.design);
+
+                var response = await fetch('thumbnails/' + state.design + '.html');
+                if (!response.ok) throw new Error('Design "' + state.design + '" nicht gefunden');
+                var html = await response.text();
+                designCache.set(state.design, html);
+                return html;
+            }
+
+            async function render() {
+                var token = ++state.renderId;
+                var html;
+                try {
+                    html = await getDesignHtml();
+                } catch (error) {
+                    console.error(error);
+                    setStatus('Design konnte nicht geladen werden: ' + error.message, true);
+                    return;
+                }
+                if (token !== state.renderId) return;
+
+                el.stage.innerHTML = html;
+                if (state.game) populate(state.game);
+                applyResultMode();
+                fitNames();
+                applyScale();
+            }
+
+            async function loadGame(id) {
+                if (!id) return;
+                setStatus('Lade Spiel ' + id + ' …');
+                try {
+                    var response = await window.spieltagFetch('/api/v2/games/' + encodeURIComponent(id) + '.json');
+                    if (!response.ok) {
+                        throw new Error('Spiel ' + id + ' nicht gefunden (HTTP ' + response.status + ')');
+                    }
+                    var game = await response.json();
+                    state.game = game;
+                    state.gameId = id;
+                    store.set(LS.game, id);
+                    setStatus(game.home_team_name + ' vs ' + game.guest_team_name);
+                    await render();
+                } catch (error) {
+                    console.error(error);
+                    setStatus(error.message || String(error), true);
+                }
+            }
+
+            function waitForImages() {
+                var images = Array.prototype.slice.call(el.stage.querySelectorAll('img'));
+                return Promise.all(images.map(function (img) {
+                    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                    if (typeof img.decode === 'function') return img.decode().catch(function () { });
+                    return new Promise(function (resolve) {
+                        img.addEventListener('load', resolve, { once: true });
+                        img.addEventListener('error', resolve, { once: true });
+                    });
+                }));
+            }
+
+            function useProxyImagesForExport() {
+                var game = state.game;
+                var swaps = [];
+                [['img_home', game.home_team_logo], ['img_away', game.guest_team_logo]].forEach(function (pair) {
+                    var img = el.stage.querySelector('#' + pair[0]);
+                    if (!img) return;
+                    var proxy = proxyImage(pair[1]);
+                    if (!proxy) return;
+                    swaps.push({
+                        img: img,
+                        src: img.getAttribute('src'),
+                        crossOrigin: img.getAttribute('crossorigin')
+                    });
+                    img.crossOrigin = 'anonymous';
+                    img.src = proxy;
+                });
+                return swaps;
+            }
+
+            function restoreDirectImages(swaps) {
+                swaps.forEach(function (swap) {
+                    if (swap.crossOrigin === null) swap.img.removeAttribute('crossorigin');
+                    else swap.img.setAttribute('crossorigin', swap.crossOrigin);
+                    if (swap.src === null) swap.img.removeAttribute('src');
+                    else swap.img.src = swap.src;
+                });
+            }
+
+            async function downloadPng() {
+                if (!state.game) {
+                    setStatus('Bitte zuerst ein Spiel laden.', true);
+                    return;
+                }
+                if (!window.htmlToImage) {
+                    setStatus('Export-Bibliothek konnte nicht geladen werden (Internetverbindung prüfen).', true);
+                    return;
+                }
+
+                el.download.disabled = true;
+                setStatus('Erzeuge PNG …');
+                var swaps = [];
+                try {
+                    // Team logos must come through the proxy with CORS for canvas export.
+                    swaps = useProxyImagesForExport();
+                    fitNames();
+                    await waitForImages();
+                    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+                    var brokenLogo = [['img_home', state.game.home_team_logo], ['img_away', state.game.guest_team_logo]]
+                        .some(function (pair) {
+                            var img = el.stage.querySelector('#' + pair[0]);
+                            return pair[1] && img && img.naturalWidth === 0;
+                        });
+                    if (brokenLogo) {
+                        throw new Error('Team-Logos konnten nicht über den Worker geladen werden. ' +
+                            'Bitte worker/ neu deployen, damit /api/storage/* proxiet wird.');
+                    }
+
+                    var dataUrl = await window.htmlToImage.toPng(el.stage, {
+                        width: STAGE_W,
+                        height: STAGE_H,
+                        pixelRatio: 2,
+                        cacheBust: true,
+                        backgroundColor: null,
+                        style: { transform: 'none' }
+                    });
+
+                    var link = document.createElement('a');
+                    link.href = dataUrl;
+                    link.download = 'spieltag-thumbnail-' + state.gameId + '-' + state.design + '.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    setStatus('PNG heruntergeladen.');
+                } catch (error) {
+                    console.error(error);
+                    setStatus('PNG-Export fehlgeschlagen: ' + (error.message || error), true);
+                } finally {
+                    restoreDirectImages(swaps);
+                    el.download.disabled = false;
+                }
+            }
+
+            function loadDesignList() {
+                fetch('thumbnails/designs.json')
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('designs.json');
+                        return response.json();
+                    })
+                    .then(function (designs) {
+                        var current = state.design;
+                        el.design.innerHTML = '';
+                        designs.forEach(function (design) {
+                            var option = document.createElement('option');
+                            option.value = design.id;
+                            option.textContent = design.name;
+                            el.design.appendChild(option);
+                        });
+                        var custom = document.createElement('option');
+                        custom.value = 'custom';
+                        custom.textContent = 'Eigener Code';
+                        el.design.appendChild(custom);
+
+                        var exists = designs.some(function (design) { return design.id === current; });
+                        state.design = current === 'custom' || exists ? current : designs[0].id;
+                        el.design.value = state.design;
+                        toggleCustomPanel();
+                        render();
+                    })
+                    .catch(function () {
+                        // Static options in the markup are a fine fallback.
+                    });
+            }
+
+            function scheduleCustomRender() {
+                clearTimeout(state.debounce);
+                state.debounce = setTimeout(function () {
+                    if (state.design === 'custom') render();
+                }, 300);
+            }
+
+            el.loadGame.addEventListener('click', function () {
+                loadGame(el.gameId.value.trim());
+            });
+
+            el.gameId.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') loadGame(el.gameId.value.trim());
+            });
+
+            el.design.addEventListener('change', function () {
+                state.design = el.design.value;
+                store.set(LS.design, state.design);
+                toggleCustomPanel();
+                render();
+            });
+
+            el.customCode.addEventListener('input', function () {
+                state.customCode = el.customCode.value;
+                store.set(LS.custom, state.customCode);
+                scheduleCustomRender();
+            });
+
+            el.loadExample.addEventListener('click', function () {
+                state.customCode = CUSTOM_EXAMPLE;
+                el.customCode.value = CUSTOM_EXAMPLE;
+                store.set(LS.custom, state.customCode);
+                render();
+            });
+
+            el.showResult.addEventListener('change', function () {
+                state.showResult = el.showResult.checked;
+                store.set(LS.result, state.showResult ? '1' : '0');
+                applyResultMode();
+            });
+
+            el.download.addEventListener('click', downloadPng);
+
+            if (typeof ResizeObserver !== 'undefined') {
+                new ResizeObserver(applyScale).observe(el.frame);
+            } else {
+                window.addEventListener('resize', applyScale);
+            }
+
+            // Init
+            el.gameId.value = state.gameId;
+            el.design.value = state.design;
+            el.customCode.value = state.customCode;
+            el.showResult.checked = state.showResult;
+            toggleCustomPanel();
+            applyScale();
+
+            loadDesignList();
+            loadGame(state.gameId);
+        })();
+    </script>
+</body>
+
+</html>

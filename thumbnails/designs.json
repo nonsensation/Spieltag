@@ -1,0 +1,14 @@
+[
+    {
+        "id": "broadcast",
+        "name": "Broadcast"
+    },
+    {
+        "id": "editorial",
+        "name": "Editorial"
+    },
+    {
+        "id": "split",
+        "name": "Split"
+    }
+]
