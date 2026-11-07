@@ -1,0 +1,9 @@
+name = "spieltag-api"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Optional: only allow these origins to call the proxy.
+# Leave unset to allow any origin (the proxied data is public anyway).
+#
+# [vars]
+# ALLOWED_ORIGINS = "https://nonsensation.github.io,http://localhost:8000"

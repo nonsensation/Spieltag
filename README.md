@@ -42,8 +42,29 @@ Dieses Tool ist als statische Webseite konzipiert.
 *   **Lokale Speicherung**: Einstellungen und eigener Code werden ausschließlich im `LocalStorage` Ihres Browsers gespeichert.
 *   **Externe Dienste**:
     *   Es werden Google Fonts geladen (Google APIs).
-    *   Spieldaten werden von der offiziellen `saisonmanager.de` API geladen.
+    *   Spieldaten werden von der offiziellen `saisonmanager.de` API geladen – über den in `worker/` enthaltenen Proxy.
     *   QR Codes werden lokal via JavaScript generiert (siehe Credits).
+
+## API-Proxy (wichtig für GitHub Pages)
+
+Die `saisonmanager.de` API erlaubt **keine direkten Browser-Aufrufe von anderen Domains** (CORS ist auf `saisonmanager.de` beschränkt) und verlangt inzwischen einen API-Key bzw. eine anonyme Session (`POST /api/v2/public_session`). Eine rein statische Seite kann beides nicht selbst erfüllen.
+
+Deshalb liegt in [`worker/`](worker/) ein kleiner Cloudflare Worker, der die Anfragen serverseitig übernimmt, die anonyme Session cached und CORS-Header setzt. Er braucht **keinen API-Key** und ist im kostenlosen Cloudflare-Tarif nutzbar.
+
+1. Worker deployen (Details: [`worker/README.md`](worker/README.md)):
+   ```bash
+   cd worker
+   npx wrangler login
+   npx wrangler deploy
+   ```
+2. Die ausgegebene URL in `config.js` eintragen:
+   ```js
+   var DEFAULT_API_BASE = "https://spieltag-api.<dein-subdomain>.workers.dev";
+   ```
+3. Committen und pushen.
+
+Zum Testen ohne Deploy kann die Proxy-URL auch per URL-Parameter übergeben werden:
+`index.html?api=https://spieltag-api.<dein-subdomain>.workers.dev`
 
 ## Credits
 

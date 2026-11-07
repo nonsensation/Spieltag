@@ -1,0 +1,7 @@
+# Cloudflare Wrangler local state (contains account details)
+worker/.wrangler/
+worker/node_modules/
+
+# Editor swap files
+*.kate-swp
+*.swp

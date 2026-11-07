@@ -180,6 +180,7 @@
     </div>
 </div>
 
+<script src="config.js"></script>
 <script type="text/javascript">
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get('id') || '42941';
@@ -210,7 +211,6 @@
     if(urlParams.get('hn')) setTextIfChanged('name_home', decodeURIComponent(urlParams.get('hn')));
     if(urlParams.get('gn')) setTextIfChanged('name_away', decodeURIComponent(urlParams.get('gn')));
 
-    const API_URL = `https://saisonmanager.de/api/v2/games/${gameId}.json`;
     const FETCH_INTERVAL = 10000;
 
     function fixLogoUrl(url) {
@@ -223,7 +223,7 @@
 
     async function fetchGameData() {
         try {
-            const response = await fetch(API_URL);
+            const response = await spieltagFetch(`/api/v2/games/${gameId}.json`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             const res = data.result;

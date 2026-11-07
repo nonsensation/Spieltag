@@ -490,6 +490,7 @@
         <div id="activeView" class="hidden"></div>
     </div>
 
+    <script src="config.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const gameId = urlParams.get('id');
@@ -552,7 +553,7 @@
 
         async function fetchPenaltyCodes() {
             try {
-                const response = await fetch('https://saisonmanager.de/api/v2/user/leagues/penalty_codes.json');
+                const response = await spieltagFetch('/api/v2/user/leagues/penalty_codes.json');
                 if (response.ok) {
                     penaltyCodes = await response.json();
                 }
@@ -570,7 +571,7 @@
 
         async function fetchMainData() {
             try {
-                const response = await fetch(`https://saisonmanager.de/api/v2/games/${gameId}.json`);
+                const response = await spieltagFetch(`/api/v2/games/${gameId}.json`);
                 if (!response.ok) throw new Error("API Error");
                 const data = await response.json();
 
@@ -601,9 +602,9 @@
         async function fetchLeagueData() {
             try {
                 const [tableRes, scorerRes, scheduleRes] = await Promise.all([
-                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/table.json`),
-                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/scorer.json`),
-                    fetch(`https://saisonmanager.de/api/v2/leagues/${leagueId}/game_days/current/schedule.json`)
+                    spieltagFetch(`/api/v2/leagues/${leagueId}/table.json`),
+                    spieltagFetch(`/api/v2/leagues/${leagueId}/scorer.json`),
+                    spieltagFetch(`/api/v2/leagues/${leagueId}/game_days/current/schedule.json`)
                 ]);
                 if (tableRes.ok) renderTable(await tableRes.json());
                 if (scorerRes.ok) renderScorers(await scorerRes.json());

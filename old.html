@@ -186,8 +186,9 @@ body {
 
 </body>
 
+<script src="config.js"></script>
 <script type="text/javascript">
-  const API_URL = 'https://saisonmanager.de/api/v2/games/42941.json';
+  const API_URL = '/api/v2/games/42941.json';
   const FETCH_INTERVAL = 10000; // 10 seconds
 
   /**
@@ -195,7 +196,7 @@ body {
    */
   async function fetchAndUpdateScore() {
     try {
-      const response = await fetch(API_URL);
+      const response = await spieltagFetch(API_URL);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

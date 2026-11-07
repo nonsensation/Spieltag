@@ -1057,6 +1057,7 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
         const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
         let gameDataFull = null;
@@ -1073,11 +1074,7 @@
             loader.innerText = 'Laden...';
 
             try {
-                const res = await fetch(`https://saisonmanager.de/api/v2/games/${id}.json`,
-                    {
-  headers: {
-    'X-Api-Key': '27f164dcc996370c5ed1fc00dce05b74049e8e0dbde98d4260e236da2fc2f6cc'
-  }});
+                const res = await spieltagFetch(`/api/v2/games/${id}.json`);
                 if (!res.ok) throw new Error('Spiel nicht gefunden');
                 const data = await res.json();
                 gameDataFull = data;
