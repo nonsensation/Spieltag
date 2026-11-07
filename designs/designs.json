@@ -10,5 +10,9 @@
     {
         "id": "cyberpunk",
         "name": "Cyberpunk"
+    },
+    {
+        "id": "matchday",
+        "name": "Matchday (Fußball)"
     }
 ]

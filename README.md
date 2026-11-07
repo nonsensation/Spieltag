@@ -7,7 +7,7 @@ Repository: [github.com/nonsensation/Spieltag](https://github.com/nonsensation/S
 ## Funktionen
 
 *   **Live Vorschau**: Sehen Sie sofort, wie das Scoreboard aussieht.
-*   **Design Auswahl**: Wählen Sie aus verschiedenen vordefinierten Designs (Default, Retro, Modern, Neon, etc.).
+*   **Design Auswahl**: Wählen Sie aus verschiedenen vordefinierten Designs (Standard, Fett Gedruckt, Cyberpunk, Matchday).
 *   **Anpassung**: Ändern Sie Teamnamen, Farben (Primär, Sekundär, Text) und Logos.
 *   **Spiel laden**: Geben Sie eine Spiel-ID von saisonmanager.de ein, um automatisch Teamdaten und Logos zu laden.
 *   **QR Code**: Generiert automatisch einen QR-Code für die erstellte Scoreboard-URL, ideal für OBS oder mobile Geräte.
