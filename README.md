@@ -70,15 +70,26 @@ Zum Testen ohne Deploy kann die Proxy-URL auch per URL-Parameter übergeben werd
 
 ## Thumbnail Generator
 
-[`thumbnail.html`](thumbnail.html) erzeugt 16:9-Vorschaubilder (1280 × 720) für ein Spiel:
+Der Thumbnail Generator ist in den Scoreboard Generator integriert: oben in der Vorschau gibt es die Tabs
+**Scoreboard** und **Thumbnail**. Das Thumbnail übernimmt automatisch:
+
+*   die **Spiel-ID**
+*   die **Teamnamen** (inkl. Overrides)
+*   die **Teamfarben** (`--home-*`, `--guest-*`)
+*   den **Hintergrund**
+
+Verfügbar sind:
 
 *   Drei Designs: **Broadcast**, **Editorial**, **Split**
 *   **Eigener Code**: HTML/CSS einfügen und über die gleichen IDs wie beim Scoreboard befüllen
 *   Umschalter zwischen **VS** und dem Spielergebnis
 *   **PNG-Export** in 2× Auflösung (2560 × 1440)
-*   Responsive Vorschau; die Bühne skaliert automatisch auf die verfügbare Breite
+*   **OBS / Browser Source URL** inkl. QR-Code; die Ansicht aktualisiert sich automatisch alle 30 Sekunden
+*   Responsive 16:9-Vorschau
 
-Die Team-Logos werden in der Vorschau direkt geladen. Für den PNG-Export müssen sie über den Worker geladen werden (CORS), daher proxiet der Worker zusätzlich `/api/storage/*`. Nach einem Update des Workers einmal neu deployen:
+Die OBS-Ansicht lässt sich auch direkt öffnen: `thumbnail.html?embed=1&id=…&design=split&…`.
+Für den PNG-Export werden die Team-Logos über den Worker geladen (CORS), daher proxiet der Worker
+zusätzlich `/api/storage/*`. Nach einem Update des Workers einmal neu deployen:
 
 ```bash
 cd worker

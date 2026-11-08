@@ -19,17 +19,19 @@
         position: absolute;
         left: 0;
         right: 0;
-        height: 1px;
-        background: rgba(23, 21, 18, 0.75);
         z-index: 0;
     }
 
     .te::before {
         top: 120px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--home-primary), var(--guest-primary));
     }
 
     .te::after {
         bottom: 120px;
+        height: 1px;
+        background: rgba(23, 21, 18, 0.75);
     }
 
     .te-top,
@@ -102,6 +104,19 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .te-name::after {
+        content: '';
+        display: block;
+        width: 130px;
+        height: 3px;
+        margin: 10px auto 0;
+        background: linear-gradient(90deg, var(--home-primary), var(--home-secondary));
+    }
+
+    .te-team:last-child .te-name::after {
+        background: linear-gradient(90deg, var(--guest-primary), var(--guest-secondary));
     }
 
     .te-center {

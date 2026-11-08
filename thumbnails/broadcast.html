@@ -4,7 +4,7 @@
         width: 1280px;
         height: 720px;
         overflow: hidden;
-        background: #080b10;
+        background: var(--bg-color, #080b10);
         color: #fff;
         font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
     }
@@ -18,8 +18,9 @@
         position: absolute;
         inset: 0;
         background:
-            radial-gradient(900px 520px at 12% 18%, rgba(42, 94, 126, 0.32), transparent 65%),
-            radial-gradient(900px 520px at 88% 82%, rgba(122, 76, 28, 0.26), transparent 65%);
+            radial-gradient(900px 520px at 12% 18%, var(--home-primary), transparent 65%),
+            radial-gradient(900px 520px at 88% 82%, var(--guest-primary), transparent 65%);
+        opacity: 0.28;
         z-index: 0;
     }
 
@@ -130,6 +131,20 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .tb-name::after {
+        content: '';
+        display: block;
+        width: 150px;
+        height: 4px;
+        margin: 10px auto 0;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--home-primary), var(--home-secondary));
+    }
+
+    .tb-team:last-child .tb-name::after {
+        background: linear-gradient(90deg, var(--guest-primary), var(--guest-secondary));
     }
 
     .tb-center {

@@ -544,6 +544,81 @@
             color: #fff;
         }
 
+        /* --- THUMBNAIL PREVIEW --- */
+        .preview-tabs {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 12;
+        }
+
+        .preview-tab {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.45);
+            color: #d5d9df;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preview-tab:hover {
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .preview-tab.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        #thumbFrame {
+            display: none;
+        }
+
+        .preview.thumbnail-mode #previewFrame,
+        .preview.thumbnail-mode .timer-panel,
+        .preview.thumbnail-mode #ctlPenaltiesHome,
+        .preview.thumbnail-mode #ctlPenaltiesGuest {
+            display: none !important;
+        }
+
+        .preview.thumbnail-mode #thumbFrame {
+            display: block;
+        }
+
+        .thumb-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.45;
+            resize: vertical;
+            box-sizing: border-box;
+            white-space: pre;
+        }
+
+        #thumbQrcode {
+            display: flex;
+            justify-content: center;
+            margin: 12px auto 0;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            width: fit-content;
+        }
+
+        #thumbQrcode img {
+            display: block;
+        }
+
         /* Hide logic helpers */
         .hidden {
             display: none !important;
@@ -557,7 +632,14 @@
         <!-- PREVIEW AREA -->
         <div class="preview">
             <h2>Live Vorschau</h2>
+            <div class="preview-tabs">
+                <button type="button" id="tabScoreboard" class="preview-tab active"
+                    onclick="setPreviewMode('scoreboard')">Scoreboard</button>
+                <button type="button" id="tabThumbnail" class="preview-tab"
+                    onclick="setPreviewMode('thumbnail')">Thumbnail</button>
+            </div>
             <iframe id="previewFrame" src="boards.html?id=42941"></iframe>
+            <iframe id="thumbFrame" title="Thumbnail Vorschau"></iframe>
 
             <!-- Penalties Overlay (Controller View) -->
             <div id="ctlPenaltiesHome"
@@ -830,6 +912,64 @@
                     </div>
                 </div>
 
+                <!-- GROUP 3b: THUMBNAIL -->
+                <div class="accordion-item">
+                    <div class="accordion-header active" onclick="toggleAccordion(this)">
+                        <span>Thumbnail</span>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="accordion-content" style="display:block;">
+                        <div class="form-group">
+                            <label>Thumbnail Design</label>
+                            <select id="thumbDesign" onchange="generate()">
+                                <option value="broadcast">Broadcast</option>
+                                <option value="editorial">Editorial</option>
+                                <option value="split">Split</option>
+                                <option value="custom">Eigener Code</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" id="thumbResult" onchange="generate()"
+                                    style="width:auto; height:auto;">
+                                <label for="thumbResult" style="display:inline; margin:0;">Ergebnis statt „VS“</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="thumbCustomWrap" style="display:none;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                                <label style="margin:0;">Thumbnail HTML / CSS</label>
+                                <button type="button" onclick="loadThumbExample()"
+                                    style="width:auto; margin:0; padding:4px 8px; font-size:0.75em; background:#5a6268;">Vorlage</button>
+                            </div>
+                            <textarea id="thumbCustomCode" class="thumb-textarea"
+                                placeholder="HTML/CSS einfügen (1280 × 720 px) …" oninput="generate()"></textarea>
+                            <p style="font-size:0.72em; color:#888; line-height:1.45; margin:6px 0 0;">
+                                Hinweis: Eigener Code wird für die OBS-Quelle aus dem LocalStorage des Browsers
+                                geladen.
+                            </p>
+                        </div>
+
+                        <button type="button" onclick="downloadThumbnail()"
+                            style="width:100%; background:#007bff;">Thumbnail als PNG</button>
+                        <div id="thumbStatus" style="font-size:0.78em; color:#1b7f3a; margin-top:8px;"></div>
+                        <p style="font-size:0.75em; color:#888; line-height:1.45; margin:8px 0 0;">
+                            Verwendet Spiel-ID, Teamnamen, Farben und Hintergrund aus dem Scoreboard. PNG wird in
+                            2560 × 1440 exportiert.
+                        </p>
+
+                        <div class="url-output"
+                            style="margin-top:14px; padding-top:14px; border-top:1px solid #eee;">
+                            <label style="font-size:0.75em; color:#888;">OBS / Browser Source URL</label>
+                            <div class="url-text" id="thumbUrl"></div>
+                            <button type="button" id="copyThumbBtn" onclick="copyThumbAndOpen()">Kopieren &amp;
+                                Öffnen</button>
+                            <div id="thumbQrcode"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- GROUP 4: EXPORT -->
                 <div class="accordion-item">
                     <div class="accordion-header active" onclick="toggleAccordion(this)">
@@ -1063,6 +1203,9 @@
     <script src="config.js"></script>
     <script>
         const BASE_URL = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/boards.html';
+        const THUMB_BASE_URL = new URL('thumbnail.html', window.location.href).toString();
+        let previewMode = 'scoreboard';
+        let settingsLoaded = false;
         let gameDataFull = null;
         let DEFAULT_CODE = ""; // Dynamic Load
 
@@ -1175,7 +1318,8 @@
         }
 
         function performGenerate() {
-            saveSettings();
+            // Never overwrite stored settings before loadSettings() has run.
+            if (settingsLoaded) saveSettings();
 
             const settings = getSettingsFromDOM();
 
@@ -1323,6 +1467,8 @@
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.L
             });
+
+            updateThumbnail();
         }
 
         function getSettingsFromDOM() {
@@ -1354,7 +1500,11 @@
                 intermissionEnabled: document.getElementById('intermissionEnabled').checked,
                 intermissionDevMode: document.getElementById('intermissionDevMode').checked,
                 intermissionCycle: document.getElementById('intermissionCycle').value,
-                intermissionTimeout: document.getElementById('intermissionTimeout').value
+                intermissionTimeout: document.getElementById('intermissionTimeout').value,
+                thumbDesign: document.getElementById('thumbDesign').value,
+                thumbResult: document.getElementById('thumbResult').checked,
+                thumbCustomCode: document.getElementById('thumbCustomCode').value,
+                previewMode: previewMode
             };
         }
 
@@ -1380,6 +1530,238 @@
                 params.append('bg', `#${h}${a}`);
             }
             if (s.scale !== '1.0' && s.scale !== '1') params.append('scale', s.scale);
+        }
+
+        // --- THUMBNAIL (shares game id, names, colors and background) ---
+
+        const THUMB_CUSTOM_EXAMPLE = `<style>
+  .my-thumb { width:1280px; height:720px; background:#0d1117; color:#fff;
+    font-family:'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform:uppercase;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:64px 76px; box-sizing:border-box; }
+  .my-thumb .top, .my-thumb .bottom { display:flex; justify-content:space-between;
+    font-family:'Barlow', sans-serif; font-size:18px; letter-spacing:.14em; color:#9aa6b2; }
+  .my-thumb .top strong { color:var(--home-primary); }
+  .my-thumb .main { display:flex; align-items:center; justify-content:space-between; gap:40px; }
+  .my-thumb .team { width:440px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  .my-thumb .team img { width:220px; height:220px; object-fit:contain; }
+  .my-thumb .name { width:100%; font-size:60px; font-weight:700; text-align:center;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .my-thumb .vs { font-size:96px; font-weight:700; color:var(--guest-primary); }
+  .my-thumb .score { display:none; font-size:72px; font-weight:700; }
+</style>
+<div class="my-thumb">
+  <div class="top">
+    <span><strong id="league"></strong> · <span id="game_day"></span></span>
+    <span><span id="date"></span> · <span id="time"></span></span>
+  </div>
+  <div class="main">
+    <div class="team">
+      <img id="img_home" alt="">
+      <div class="name" id="name_home"></div>
+    </div>
+    <div>
+      <div class="vs" id="center_vs">VS</div>
+      <div class="score" id="center_score"><span id="score_home">0</span> : <span id="score_away">0</span></div>
+    </div>
+    <div class="team">
+      <img id="img_away" alt="">
+      <div class="name" id="name_away"></div>
+    </div>
+  </div>
+  <div class="bottom"><span id="arena"></span><span>Spieltag</span></div>
+</div>`;
+
+        function colorWithAlpha(hex, alpha) {
+            if (!hex) return '';
+            let h = hex.startsWith('#') ? hex.substring(1) : hex;
+            let a = Math.round((parseFloat(alpha) / 100) * 255).toString(16);
+            if (a.length === 1) a = '0' + a;
+            return `#${h}${a}`;
+        }
+
+        function getThumbSettings() {
+            const bgColor = document.getElementById('bgColor');
+            const bgAlpha = document.getElementById('bgAlpha');
+            return {
+                gameId: document.getElementById('gameId').value.trim(),
+                design: document.getElementById('thumbDesign').value,
+                showResult: document.getElementById('thumbResult').checked,
+                interval: '30',
+                customCode: document.getElementById('thumbCustomCode').value,
+                names: {
+                    home: document.getElementById('hn').value,
+                    away: document.getElementById('gn').value
+                },
+                theme: {
+                    home: {
+                        primary: document.getElementById('hp').value,
+                        secondary: document.getElementById('hs').value,
+                        text: document.getElementById('ht').value
+                    },
+                    guest: {
+                        primary: document.getElementById('gp').value,
+                        secondary: document.getElementById('gs').value,
+                        text: document.getElementById('gt').value
+                    },
+                    bg: bgColor && bgAlpha ? colorWithAlpha(bgColor.value, bgAlpha.value) : ''
+                }
+            };
+        }
+
+        function buildThumbUrl(settings) {
+            const params = new URLSearchParams();
+            params.append('embed', '1');
+            params.append('id', settings.gameId);
+            params.append('design', settings.design);
+            params.append('interval', settings.interval);
+            if (settings.showResult) params.append('result', '1');
+            if (settings.names.home) params.append('hn', settings.names.home);
+            if (settings.names.away) params.append('gn', settings.names.away);
+            params.append('hp', settings.theme.home.primary);
+            params.append('hs', settings.theme.home.secondary);
+            params.append('ht', settings.theme.home.text);
+            params.append('gp', settings.theme.guest.primary);
+            params.append('gs', settings.theme.guest.secondary);
+            params.append('gt', settings.theme.guest.text);
+            if (settings.theme.bg) params.append('bg', settings.theme.bg);
+            return `${THUMB_BASE_URL}?${params.toString()}`;
+        }
+
+        function ensureThumbFrame(settings, url) {
+            const frame = document.getElementById('thumbFrame');
+            if (!frame) return;
+            settings = settings || getThumbSettings();
+            url = url || buildThumbUrl(settings);
+
+            if (frame.dataset.loaded !== '1') {
+                frame.dataset.loaded = '1';
+                frame.src = url;
+                return;
+            }
+
+            if (frame.contentWindow && frame.contentWindow.thumbnailApi) {
+                frame.contentWindow.thumbnailApi.applySettings(settings);
+            } else {
+                frame.src = url;
+            }
+        }
+
+        function updateThumbnail() {
+            const designSelect = document.getElementById('thumbDesign');
+            const customWrap = document.getElementById('thumbCustomWrap');
+            if (customWrap) customWrap.style.display = designSelect.value === 'custom' ? 'block' : 'none';
+
+            const settings = getThumbSettings();
+            const url = buildThumbUrl(settings);
+
+            const urlEl = document.getElementById('thumbUrl');
+            if (urlEl) urlEl.innerText = url;
+
+            const qr = document.getElementById('thumbQrcode');
+            if (qr && window.QRCode) {
+                qr.innerHTML = '';
+                new QRCode(qr, {
+                    text: url,
+                    width: 128,
+                    height: 128,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+            }
+
+            // Keep the standalone page in sync when opened directly.
+            try {
+                localStorage.setItem('spieltagThumbDesign', settings.design);
+                localStorage.setItem('spieltagThumbCustom', settings.customCode);
+                localStorage.setItem('spieltagThumbResult', settings.showResult ? '1' : '0');
+            } catch (e) { /* ignore */ }
+
+            if (previewMode === 'thumbnail') ensureThumbFrame(settings, url);
+        }
+
+        function setPreviewMode(mode) {
+            previewMode = mode === 'thumbnail' ? 'thumbnail' : 'scoreboard';
+
+            const preview = document.querySelector('.preview');
+            if (preview) preview.classList.toggle('thumbnail-mode', previewMode === 'thumbnail');
+
+            const tabScoreboard = document.getElementById('tabScoreboard');
+            const tabThumbnail = document.getElementById('tabThumbnail');
+            if (tabScoreboard) tabScoreboard.classList.toggle('active', previewMode === 'scoreboard');
+            if (tabThumbnail) tabThumbnail.classList.toggle('active', previewMode === 'thumbnail');
+
+            if (previewMode === 'thumbnail') {
+                const settings = getThumbSettings();
+                ensureThumbFrame(settings, buildThumbUrl(settings));
+            }
+
+            try { localStorage.setItem('previewMode', previewMode); } catch (e) { /* ignore */ }
+        }
+
+        function copyThumbAndOpen() {
+            const url = document.getElementById('thumbUrl').innerText;
+            if (!url) return;
+
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('copyThumbBtn');
+                const original = btn.innerText;
+                btn.innerText = 'Kopiert!';
+                window.open(url, '_blank');
+                setTimeout(() => { btn.innerText = original; }, 3000);
+            }).catch(() => window.open(url, '_blank'));
+        }
+
+        function loadThumbExample() {
+            document.getElementById('thumbCustomCode').value = THUMB_CUSTOM_EXAMPLE;
+            generate();
+        }
+
+        function downloadThumbnail() {
+            setPreviewMode('thumbnail');
+            const frame = document.getElementById('thumbFrame');
+            const status = document.getElementById('thumbStatus');
+            if (status) {
+                status.textContent = 'Erzeuge PNG …';
+                status.style.color = '#666';
+            }
+
+            let attempts = 0;
+            const run = function () {
+                const win = frame.contentWindow;
+                if (win && win.thumbnailApi) {
+                    Promise.resolve(win.thumbnailApi.downloadPng()).then(() => {
+                        const iframeStatus = win.document ? win.document.getElementById('status') : null;
+                        const isError = iframeStatus && iframeStatus.classList.contains('error');
+                        if (status) {
+                            status.textContent = iframeStatus
+                                ? iframeStatus.textContent
+                                : (isError ? 'Thumbnail-Export fehlgeschlagen.' : 'Thumbnail PNG heruntergeladen.');
+                            status.style.color = isError ? '#c62828' : '#1b7f3a';
+                        }
+                    }).catch((error) => {
+                        console.error(error);
+                        if (status) {
+                            status.textContent = 'Thumbnail-Export fehlgeschlagen.';
+                            status.style.color = '#c62828';
+                        }
+                    });
+                    return;
+                }
+
+                if (++attempts < 25) {
+                    setTimeout(run, 200);
+                    return;
+                }
+
+                if (status) {
+                    status.textContent = 'Thumbnail-Vorschau ist noch nicht bereit. Bitte erneut versuchen.';
+                    status.style.color = '#c62828';
+                }
+            };
+
+            run();
         }
 
         function broadcastSettings(s) {
@@ -1432,7 +1814,11 @@
                 intermissionEnabled: document.getElementById('intermissionEnabled').checked,
                 intermissionDevMode: document.getElementById('intermissionDevMode').checked,
                 intermissionCycle: document.getElementById('intermissionCycle').value,
-                intermissionTimeout: document.getElementById('intermissionTimeout').value
+                intermissionTimeout: document.getElementById('intermissionTimeout').value,
+                thumbDesign: document.getElementById('thumbDesign').value,
+                thumbResult: document.getElementById('thumbResult').checked,
+                thumbCustomCode: document.getElementById('thumbCustomCode').value,
+                previewMode: previewMode
             };
             localStorage.setItem('scoreboardGenAttributes', JSON.stringify(settings));
         }
@@ -1474,6 +1860,21 @@
                     if (s.intermissionDevMode !== undefined) document.getElementById('intermissionDevMode').checked = s.intermissionDevMode;
                     if (s.intermissionCycle) document.getElementById('intermissionCycle').value = s.intermissionCycle;
                     if (s.intermissionTimeout !== undefined) document.getElementById('intermissionTimeout').value = s.intermissionTimeout;
+
+                    if (s.thumbDesign) document.getElementById('thumbDesign').value = s.thumbDesign;
+                    if (s.thumbResult !== undefined) document.getElementById('thumbResult').checked = s.thumbResult;
+                    if (s.thumbCustomCode) document.getElementById('thumbCustomCode').value = s.thumbCustomCode;
+                    document.getElementById('thumbCustomWrap').style.display =
+                        document.getElementById('thumbDesign').value === 'custom' ? 'block' : 'none';
+
+                    // Make custom thumbnail code available to the embed iframe before it loads.
+                    try {
+                        localStorage.setItem('spieltagThumbDesign', document.getElementById('thumbDesign').value);
+                        localStorage.setItem('spieltagThumbCustom', document.getElementById('thumbCustomCode').value);
+                        localStorage.setItem('spieltagThumbResult', document.getElementById('thumbResult').checked ? '1' : '0');
+                    } catch (e) { /* ignore */ }
+
+                    if (s.previewMode) setPreviewMode(s.previewMode);
                 } catch (e) { console.error(e); }
             }
 
@@ -1483,6 +1884,12 @@
             } else {
                 document.getElementById('customCode').value = DEFAULT_CODE;
             }
+
+            settingsLoaded = true;
+        }
+
+        function initSettingsOnce() {
+            if (!settingsLoaded) loadSettings();
         }
 
         function openQrModal() {
@@ -1567,7 +1974,17 @@
         }
 
         window.onload = function () {
-            loadSettings();
+            const thumbFrameEl = document.getElementById('thumbFrame');
+            if (thumbFrameEl) {
+                thumbFrameEl.addEventListener('load', function () {
+                    if (previewMode === 'thumbnail' && thumbFrameEl.contentWindow && thumbFrameEl.contentWindow.thumbnailApi) {
+                        thumbFrameEl.contentWindow.thumbnailApi.applySettings(getThumbSettings());
+                    }
+                });
+            }
+
+            initSettingsOnce();
+            updateThumbnail();
             fetchGameDetails();
             loadDesigns();
 
@@ -2189,6 +2606,13 @@
                 }
             } catch (e) { console.error("Could not load default.html for custom code"); }
 
+            if (!localStorage.getItem('scoreboardCustomCode')) {
+                document.getElementById('customCode').value = DEFAULT_CODE;
+            }
+
+            // Load stored settings before the first generate() call so it cannot
+            // overwrite them with defaults (the debounced generate saves settings).
+            initSettingsOnce();
             generate();
         })();
     </script>

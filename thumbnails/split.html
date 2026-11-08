@@ -105,20 +105,37 @@
     }
 
     .ts-plate {
+        position: relative;
         width: 250px;
         height: 250px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
+        overflow: hidden;
         background: rgba(255, 255, 255, 0.08);
+    }
+
+    .ts-plate::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--home-primary);
+        opacity: 0.3;
     }
 
     .ts-away .ts-plate {
         background: rgba(0, 0, 0, 0.06);
     }
 
+    .ts-away .ts-plate::before {
+        background: var(--guest-primary);
+        opacity: 0.22;
+    }
+
     .ts-logo {
+        position: relative;
+        z-index: 1;
         max-width: 195px;
         max-height: 195px;
         object-fit: contain;
@@ -136,6 +153,19 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .ts-name::after {
+        content: '';
+        display: block;
+        width: 120px;
+        height: 3px;
+        margin: 10px auto 0;
+        background: linear-gradient(90deg, var(--home-primary), var(--home-secondary));
+    }
+
+    .ts-away .ts-name::after {
+        background: linear-gradient(90deg, var(--guest-primary), var(--guest-secondary));
     }
 
     .ts-center {

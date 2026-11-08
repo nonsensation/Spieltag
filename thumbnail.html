@@ -13,6 +13,7 @@
         rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
@@ -275,6 +276,46 @@
             color: var(--danger);
         }
 
+        .url-box {
+            margin: 8px 0 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #4b5563;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.72rem;
+            line-height: 1.5;
+            word-break: break-all;
+            max-height: 96px;
+            overflow: auto;
+        }
+
+        .qr {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .qr img {
+            display: block;
+        }
+
+        .embed-note {
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #4b5563;
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .embed-note strong {
+            color: var(--text);
+        }
+
         .hint {
             margin: 8px 0 0;
             color: var(--muted);
@@ -388,6 +429,43 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
+
+        /* --- OBS embed mode: only the 16:9 thumbnail remains --- */
+
+        body.embed {
+            background: var(--bg-color, transparent);
+            overflow: hidden;
+        }
+
+        body.embed .app-header,
+        body.embed .panel,
+        body.embed .preview-head,
+        body.embed .preview-hint {
+            display: none;
+        }
+
+        body.embed .app-main {
+            display: block;
+            max-width: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        body.embed .preview-panel {
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        body.embed .preview-frame {
+            width: 100vw;
+            height: 100vh;
+            padding-top: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
     </style>
 </head>
 
@@ -406,6 +484,8 @@
             <h1>Thumbnail Generator</h1>
             <p class="subtitle">16:9-Vorschau aus den saisonmanager-Spieldaten. Als PNG exportieren oder als OBS-Quelle
                 verwenden.</p>
+            <p class="hint" style="margin-top:-12px; margin-bottom:16px;">Teamnamen, Farben und Hintergrund werden aus
+                dem Scoreboard Generator übernommen (<a href="index.html">dort ändern</a>).</p>
 
             <div class="field">
                 <label for="gameId">Spiel ID (saisonmanager.de)</label>
@@ -437,7 +517,8 @@
                     Die Bühne ist <strong>1280 × 720 px</strong>. Fülle Elemente über die IDs
                     <code>name_home</code>, <code>name_away</code>, <code>img_home</code>, <code>img_away</code>,
                     <code>league</code>, <code>game_day</code>, <code>date</code>, <code>time</code>,
-                    <code>arena</code>.
+                    <code>arena</code>. Für die OBS-Quelle wird eigener Code aus dem LocalStorage des Browsers
+                    geladen.
                 </p>
             </div>
 
@@ -449,6 +530,15 @@
             <button type="button" id="download" class="btn btn-primary btn-block">PNG herunterladen</button>
             <p class="hint">Export in 2× Auflösung: <strong>2560 × 1440 px</strong>. Logos werden dafür über den Worker
                 geladen (<code>/api/storage/*</code> – siehe <code>worker/</code>).</p>
+
+            <div class="embed-note">
+                <strong>OBS / Browser Source</strong><br>
+                Die URL unten als Browser-Quelle einfügen (16:9, z. B. 1920 × 1080). Sie zeigt nur die 16:9-Grafik
+                ohne Bedienelemente und aktualisiert das Spiel automatisch.
+            </div>
+            <div class="url-box" id="embedUrl">–</div>
+            <button type="button" id="copyEmbed" class="btn btn-ghost btn-block">URL kopieren &amp; öffnen</button>
+            <div class="qr" id="qrcode"></div>
 
             <details class="help">
                 <summary>Verfügbare IDs für eigenen Code</summary>
@@ -514,20 +604,88 @@
                 download: document.getElementById('download'),
                 status: document.getElementById('status'),
                 frame: document.getElementById('previewFrame'),
-                stage: document.getElementById('stage')
+                stage: document.getElementById('stage'),
+                embedUrl: document.getElementById('embedUrl'),
+                copyEmbed: document.getElementById('copyEmbed'),
+                qr: document.getElementById('qrcode')
             };
 
             var urlParams = new URLSearchParams(window.location.search);
+            var isEmbed = urlParams.get('embed') === '1' || urlParams.get('obs') === '1';
+            if (isEmbed) document.body.classList.add('embed');
+
+            var GEN_KEY = 'scoreboardGenAttributes';
+
+            function readGeneratorSettings() {
+                try {
+                    return JSON.parse(localStorage.getItem(GEN_KEY) || '{}') || {};
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            var generator = readGeneratorSettings();
+
+            function generatorValue(key, fallback) {
+                return generator[key] !== undefined && generator[key] !== '' ? generator[key] : fallback;
+            }
+
+            function urlValue(key, fallback) {
+                var value = urlParams.get(key);
+                return value !== null && value !== '' ? value : fallback;
+            }
+
+            function generatorBg() {
+                if (!generator.bgColor) return '';
+                if (generator.bgAlpha === undefined) return generator.bgColor;
+                var hex = generator.bgColor.charAt(0) === '#' ? generator.bgColor.substring(1) : generator.bgColor;
+                var alpha = Math.round((parseFloat(generator.bgAlpha) / 100) * 255).toString(16);
+                if (alpha.length === 1) alpha = '0' + alpha;
+                return '#' + hex + alpha;
+            }
 
             var state = {
-                gameId: urlParams.get('id') || store.get(LS.game) || DEFAULT_GAME,
-                design: urlParams.get('design') || store.get(LS.design) || 'broadcast',
+                gameId: urlValue('id', store.get(LS.game) || DEFAULT_GAME),
+                design: urlValue('design', store.get(LS.design) || 'broadcast'),
                 customCode: store.get(LS.custom) || '',
-                showResult: urlParams.get('result') === '1' || store.get(LS.result) === '1',
+                showResult: urlValue('result', store.get(LS.result)) === '1',
+                interval: parseInt(urlValue('interval', generatorValue('interval', '30')), 10) || 30,
+                theme: {
+                    home: {
+                        primary: urlValue('hp', generatorValue('hp', '#000000')),
+                        secondary: urlValue('hs', generatorValue('hs', '#1e713a')),
+                        text: urlValue('ht', generatorValue('ht', '#ffffff'))
+                    },
+                    guest: {
+                        primary: urlValue('gp', generatorValue('gp', '#ff0000')),
+                        secondary: urlValue('gs', generatorValue('gs', '#ffffff')),
+                        text: urlValue('gt', generatorValue('gt', '#000000'))
+                    },
+                    bg: urlValue('bg', generatorBg())
+                },
+                names: {
+                    home: urlValue('hn', generatorValue('hn', '')),
+                    away: urlValue('gn', generatorValue('gn', ''))
+                },
                 game: null,
                 renderId: 0,
-                debounce: null
+                debounce: null,
+                refreshTimer: null
             };
+
+            function applyTheme() {
+                var root = document.documentElement;
+                root.style.setProperty('--home-primary', state.theme.home.primary);
+                root.style.setProperty('--home-secondary', state.theme.home.secondary);
+                root.style.setProperty('--home-text', state.theme.home.text);
+                root.style.setProperty('--guest-primary', state.theme.guest.primary);
+                root.style.setProperty('--guest-secondary', state.theme.guest.secondary);
+                root.style.setProperty('--guest-text', state.theme.guest.text);
+                if (state.theme.bg) root.style.setProperty('--bg-color', state.theme.bg);
+                else root.style.removeProperty('--bg-color');
+            }
+
+            applyTheme();
 
             var designCache = new Map();
 
@@ -634,8 +792,8 @@
                 setText('time', game.start_time || '');
                 setText('arena', game.arena_name || game.arena_short || '');
 
-                setText('name_home', game.home_team_name || '');
-                setText('name_away', game.guest_team_name || '');
+                setText('name_home', state.names.home || game.home_team_name || '');
+                setText('name_away', state.names.away || game.guest_team_name || '');
                 setText('short_home', game.home_team_short_name || '');
                 setText('short_away', game.guest_team_short_name || '');
 
@@ -675,9 +833,75 @@
             }
 
             function applyScale() {
+                if (isEmbed) {
+                    var viewWidth = el.frame.clientWidth;
+                    var viewHeight = el.frame.clientHeight;
+                    if (!viewWidth || !viewHeight) return;
+                    var fit = Math.min(viewWidth / STAGE_W, viewHeight / STAGE_H);
+                    el.stage.style.transformOrigin = 'center center';
+                    el.stage.style.left = '50%';
+                    el.stage.style.top = '50%';
+                    el.stage.style.transform = 'translate(-50%, -50%) scale(' + fit + ')';
+                    return;
+                }
+
                 var width = el.frame.clientWidth;
                 if (!width) return;
+                el.stage.style.transformOrigin = 'top left';
+                el.stage.style.left = '0';
+                el.stage.style.top = '0';
                 el.stage.style.transform = 'scale(' + (width / STAGE_W) + ')';
+            }
+
+            function buildEmbedUrl() {
+                var params = new URLSearchParams();
+                params.set('embed', '1');
+                params.set('id', state.gameId);
+                params.set('design', state.design);
+                params.set('interval', String(state.interval));
+                if (state.showResult) params.set('result', '1');
+                if (state.names.home) params.set('hn', state.names.home);
+                if (state.names.away) params.set('gn', state.names.away);
+                params.set('hp', state.theme.home.primary);
+                params.set('hs', state.theme.home.secondary);
+                params.set('ht', state.theme.home.text);
+                params.set('gp', state.theme.guest.primary);
+                params.set('gs', state.theme.guest.secondary);
+                params.set('gt', state.theme.guest.text);
+                if (state.theme.bg) params.set('bg', state.theme.bg);
+                return new URL('thumbnail.html?' + params.toString(), window.location.href).toString();
+            }
+
+            function updateEmbedUrl() {
+                if (isEmbed || !el.embedUrl) return;
+                var url = buildEmbedUrl();
+                el.embedUrl.textContent = url;
+
+                if (el.qr && window.QRCode) {
+                    el.qr.innerHTML = '';
+                    new QRCode(el.qr, {
+                        text: url,
+                        width: 132,
+                        height: 132,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                }
+            }
+
+            async function refreshGame() {
+                if (!state.gameId) return;
+                try {
+                    var response = await window.spieltagFetch('/api/v2/games/' + encodeURIComponent(state.gameId) + '.json');
+                    if (!response.ok) return;
+                    state.game = await response.json();
+                    populate(state.game);
+                    applyResultMode();
+                    fitNames();
+                } catch (error) {
+                    console.warn('Thumbnail refresh failed', error);
+                }
             }
 
             async function getDesignHtml() {
@@ -714,6 +938,7 @@
                 applyResultMode();
                 fitNames();
                 applyScale();
+                updateEmbedUrl();
             }
 
             async function loadGame(id) {
@@ -812,7 +1037,7 @@
                         pixelRatio: 2,
                         cacheBust: true,
                         backgroundColor: null,
-                        style: { transform: 'none' }
+                        style: { transform: 'none', left: '0px', top: '0px' }
                     });
 
                     var link = document.createElement('a');
@@ -869,6 +1094,83 @@
                 }, 300);
             }
 
+            function startRefresh() {
+                if (!isEmbed) return;
+                if (state.refreshTimer) clearInterval(state.refreshTimer);
+                state.refreshTimer = setInterval(refreshGame, Math.max(5, state.interval) * 1000);
+            }
+
+            function applyExternalSettings(settings) {
+                if (!settings) return;
+                var needsRender = false;
+
+                if (settings.gameId && String(settings.gameId) !== String(state.gameId)) {
+                    state.gameId = String(settings.gameId);
+                    el.gameId.value = state.gameId;
+                    loadGame(state.gameId);
+                }
+
+                if (settings.design && settings.design !== state.design) {
+                    state.design = settings.design;
+                    el.design.value = state.design;
+                    toggleCustomPanel();
+                    needsRender = true;
+                }
+
+                if (typeof settings.customCode === 'string') {
+                    state.customCode = settings.customCode;
+                    el.customCode.value = state.customCode;
+                    if (state.design === 'custom') needsRender = true;
+                }
+
+                if (typeof settings.showResult === 'boolean') {
+                    state.showResult = settings.showResult;
+                    el.showResult.checked = state.showResult;
+                }
+
+                if (settings.interval) {
+                    var nextInterval = parseInt(settings.interval, 10) || state.interval;
+                    if (nextInterval !== state.interval) {
+                        state.interval = nextInterval;
+                        startRefresh();
+                    }
+                }
+
+                if (settings.theme) {
+                    state.theme = settings.theme;
+                    applyTheme();
+                }
+
+                if (settings.names) {
+                    state.names = settings.names;
+                }
+
+                if (needsRender) {
+                    render();
+                } else {
+                    if (state.game) populate(state.game);
+                    applyResultMode();
+                    fitNames();
+                    updateEmbedUrl();
+                }
+            }
+
+            window.thumbnailApi = {
+                applySettings: applyExternalSettings,
+                downloadPng: downloadPng,
+                getEmbedUrl: buildEmbedUrl,
+                getState: function () {
+                    return {
+                        gameId: state.gameId,
+                        design: state.design,
+                        showResult: state.showResult,
+                        names: state.names,
+                        theme: state.theme,
+                        interval: state.interval
+                    };
+                }
+            };
+
             el.loadGame.addEventListener('click', function () {
                 loadGame(el.gameId.value.trim());
             });
@@ -897,10 +1199,25 @@
                 render();
             });
 
+            el.copyEmbed.addEventListener('click', function () {
+                var url = el.embedUrl.textContent;
+                if (!url || url === '–') return;
+                var open = function () { window.open(url, '_blank'); };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () {
+                        setStatus('OBS-URL kopiert.');
+                        open();
+                    }).catch(open);
+                } else {
+                    open();
+                }
+            });
+
             el.showResult.addEventListener('change', function () {
                 state.showResult = el.showResult.checked;
                 store.set(LS.result, state.showResult ? '1' : '0');
                 applyResultMode();
+                updateEmbedUrl();
             });
 
             el.download.addEventListener('click', downloadPng);
@@ -921,6 +1238,7 @@
 
             loadDesignList();
             loadGame(state.gameId);
+            startRefresh();
         })();
     </script>
 </body>
